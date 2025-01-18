@@ -76,6 +76,47 @@ app.use(auth.populateCurrentUser);
 // connect user-defined routes
 app.use("/api", api);
 
+// Movie API endpoints
+app.post("/api/movies/search", auth.ensureLoggedIn, async (req, res) => {
+  try {
+    const filters = req.body;
+    const TMDB_API_KEY = process.env.TMDB_API_KEY;
+    
+    // Construct TMDB API query based on filters
+    let url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}`;
+    
+    if (filters.language) {
+      url += `&language=${filters.language.toLowerCase()}`;
+    }
+    
+    if (filters.imdbRating) {
+      url += `&vote_average.gte=${filters.imdbRating}`;
+    }
+    
+    if (filters.genre) {
+      // You'll need to map your genres to TMDB genre IDs
+      const genreMap = {
+        "Romantic Comedy": 10749,
+        "Science Fiction": 878,
+        "Drama": 18,
+        "Action": 28,
+      };
+      url += `&with_genres=${genreMap[filters.genre]}`;
+    }
+    
+    if (filters.trending === "Yes") {
+      url = `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}`;
+    }
+
+    const response = await fetch(url);
+    const data = await response.json();
+    res.json(data.results);
+  } catch (error) {
+    console.error("Error fetching movies:", error);
+    res.status(500).json({ error: "Failed to fetch movies" });
+  }
+});
+
 // load the compiled react files, which will serve /index.html and /bundle.js
 const reactPath = path.resolve(__dirname, "..", "client", "dist");
 app.use(express.static(reactPath));

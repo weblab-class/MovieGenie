@@ -1,7 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./components/App";
-import Skeleton from "./components/pages/Skeleton";
+import FilterPage from "./components/pages/FilterPage";
+import ResultsPage from "./components/pages/ResultsPage";
 import NotFound from "./components/pages/NotFound";
 
 import {
@@ -11,22 +12,17 @@ import {
   RouterProvider,
 } from "react-router-dom";
 
-import { GoogleOAuthProvider } from "@react-oauth/google";
-
-//TODO: REPLACE WITH YOUR OWN CLIENT_ID
-const GOOGLE_CLIENT_ID = "920670602163-kot52u1ps9vbpdr67l7q9u5m59gjjqeu.apps.googleusercontent.com";
-
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route errorElement={<NotFound />} element={<App />}>
-      <Route path="/" element={<Skeleton />} />
+      <Route path="/" element={<FilterPage />} />
+      <Route path="/results" element={<ResultsPage />} />
     </Route>
   )
 );
 
-// renders React Component "Root" into the DOM element with ID "root"
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+  <React.StrictMode>
     <RouterProvider router={router} />
-  </GoogleOAuthProvider>
+  </React.StrictMode>
 );
