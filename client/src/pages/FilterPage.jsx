@@ -15,7 +15,7 @@ const FilterPage = () => {
   });
 
   const filterOptions = {
-    streamingService: ["Netflix", "Max", "Apple TV", "Prime"],
+    streamingService: ["Netflix", "HBOMax", "Apple TV", "Prime"],
     country: ["United States", "Canada", "Mexico"],
     language: ["English", "Hindi", "Spanish"],
     mpaaRating: ["G", "PG", "PG-13", "R", "NC-17"],

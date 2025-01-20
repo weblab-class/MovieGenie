@@ -7,17 +7,21 @@ const LandingPage = ({ setUser }) => {
   const navigate = useNavigate();
 
   const handleLoginSuccess = async (credentialResponse) => {
-    const response = await fetch("/api/auth/login", {
+    const response = await fetch("/api/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ credential: credentialResponse.credential }),
+      body: JSON.stringify({ token: credentialResponse.credential }),
     });
     
     const data = await response.json();
-    setUser(data);
-    navigate("/filter");
+    if (data._id) {  // Only set user and navigate if login was successful
+      setUser(data);
+      navigate("/filter");
+    } else {
+      console.log("Login failed:", data.err);
+    }
   };
 
   return (

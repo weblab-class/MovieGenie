@@ -8,7 +8,7 @@ import ResultsPage from "./pages/ResultsPage";
 
 import "./styles/App.css";
 
-const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID";
+const GOOGLE_CLIENT_ID = "920670602163-kot52u1ps9vbpdr67l7q9u5m59gjjqeu.apps.googleusercontent.com";
 
 const App = () => {
   const [user, setUser] = useState(null);
