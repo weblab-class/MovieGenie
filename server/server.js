@@ -38,7 +38,7 @@ const socketManager = require("./server-socket");
 // TODO change connection URL after setting up your team database
 const mongoConnectionURL = process.env.MONGO_SRV;
 // TODO change database name to the name you chose
-const databaseName = "Catbook";
+const databaseName = "Cluster0";
 
 // mongoose 7 warning
 mongoose.set("strictQuery", false);
@@ -81,29 +81,29 @@ app.post("/api/movies/search", auth.ensureLoggedIn, async (req, res) => {
   try {
     const filters = req.body;
     const TMDB_API_KEY = process.env.TMDB_API_KEY;
-    
+
     // Construct TMDB API query based on filters
     let url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}`;
-    
+
     if (filters.language) {
       url += `&language=${filters.language.toLowerCase()}`;
     }
-    
+
     if (filters.imdbRating) {
       url += `&vote_average.gte=${filters.imdbRating}`;
     }
-    
+
     if (filters.genre) {
       // You'll need to map your genres to TMDB genre IDs
       const genreMap = {
         "Romantic Comedy": 10749,
         "Science Fiction": 878,
-        "Drama": 18,
-        "Action": 28,
+        Drama: 18,
+        Action: 28,
       };
       url += `&with_genres=${genreMap[filters.genre]}`;
     }
-    
+
     if (filters.trending === "Yes") {
       url = `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}`;
     }

@@ -13,65 +13,97 @@
 .results-header h1 {
   color: #ffd700;
   font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.results-header p {
+  color: #8892b0;
+  font-size: 1.2rem;
 }
 
 .movies-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 2rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 .movie-card {
-  position: relative;
-  transition: transform 0.3s;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.movie-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .movie-poster {
   position: relative;
+  aspect-ratio: 2/3;
   overflow: hidden;
-  border-radius: 8px;
 }
 
 .movie-poster img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   display: block;
 }
 
 .movie-details {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(10, 25, 47, 0.9);
-  padding: 1rem;
-  opacity: 0;
-  transition: opacity 0.3s;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.movie-card:hover .movie-details {
-  opacity: 1;
+  padding: 1.5rem;
 }
 
 .movie-details h3 {
   color: #ffd700;
-  margin-bottom: 0.5rem;
+  font-size: 1.4rem;
+  margin: 0 0 0.5rem 0;
 }
 
-.movie-details p {
-  margin: 0.25rem 0;
+.movie-rating {
+  color: #64ffda;
+  font-size: 1.1rem;
+  margin: 0.5rem 0;
+}
+
+.movie-date {
+  color: #8892b0;
+  font-size: 1rem;
+  margin: 0.5rem 0;
+}
+
+.movie-overview {
+  color: #a8b2d1;
   font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 1rem 0 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.no-results {
+  text-align: center;
+  padding: 4rem 2rem;
   color: #8892b0;
 }
 
-.movie-title {
-  margin-top: 0.5rem;
-  text-align: center;
-  font-size: 1rem;
+.no-results h2 {
+  color: #ffd700;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .movies-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  .results-header h1 {
+    font-size: 2rem;
+  }
 }

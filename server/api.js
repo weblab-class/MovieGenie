@@ -8,7 +8,11 @@
 */
 
 const express = require("express");
-const fetch = require("node-fetch");
+import('node-fetch').then(({ default: fetch }) => {
+  global.fetch = fetch;
+}).catch(err => {
+  console.error('Failed to load node-fetch:', err);
+});
 
 // import models so we can interact with the database
 const User = require("./models/user");
@@ -95,6 +99,66 @@ router.post("/movies/search", (req, res) => {
       console.error("Error fetching movies:", error);
       res.status(500).json({ error: "Failed to fetch movies" });
     });
+});
+
+// TMDB API configuration
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
+if (!TMDB_API_KEY) {
+  console.error('TMDB_API_KEY is not set in environment variables');
+}
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+
+// Movie discovery endpoint
+router.get("/discover", async (req, res) => {
+  try {
+    if (!TMDB_API_KEY) {
+      throw new Error('TMDB API key is not configured');
+    }
+
+    console.log('Received query params:', req.query);
+    
+    // Get query parameters
+    const {
+      with_genres,
+      vote_average_gte,
+      with_original_language,
+      sort_by,
+    } = req.query;
+
+    // Build TMDB API URL with parameters
+    const params = new URLSearchParams({
+      api_key: TMDB_API_KEY,
+      language: 'en-US',
+      include_adult: false,
+      include_video: false,
+      page: 1,
+    });
+
+    // Add optional filters if they exist
+    if (with_genres) params.append('with_genres', with_genres);
+    if (vote_average_gte) params.append('vote_average.gte', vote_average_gte);
+    if (with_original_language) params.append('with_original_language', with_original_language);
+    if (sort_by) params.append('sort_by', sort_by);
+
+    const tmdbUrl = `${TMDB_BASE_URL}/discover/movie?${params}`;
+    console.log('TMDB API URL:', tmdbUrl);
+
+    // Make request to TMDB API
+    const response = await fetch(tmdbUrl);
+    const data = await response.json();
+
+    console.log('TMDB API Response status:', response.status);
+    if (!response.ok) {
+      console.error('TMDB API Error:', data);
+      throw new Error(data.status_message || 'Failed to fetch movies from TMDB');
+    }
+
+    console.log('Found', data.results?.length, 'movies');
+    res.json(data);
+  } catch (error) {
+    console.error('TMDB API Error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // anything else falls to this "not found" case
