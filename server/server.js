@@ -27,6 +27,7 @@ const express = require("express"); // backend framework for our node server.
 const session = require("express-session"); // library that stores info about each connected user
 const mongoose = require("mongoose"); // library to connect to MongoDB
 const path = require("path"); // provide utilities for working with file and directory paths
+const fs = require("fs"); // provide utilities for working with file system
 
 const api = require("./api");
 const auth = require("./auth");
@@ -119,18 +120,21 @@ app.post("/api/movies/search", auth.ensureLoggedIn, async (req, res) => {
 
 // load the compiled react files, which will serve /index.html and /bundle.js
 const reactPath = path.resolve(__dirname, "..", "client", "dist");
+
+// Serve static files
 app.use(express.static(reactPath));
 
 // for all other routes, render index.html and let react router handle it
-app.get("*", (req, res) => {
-  res.sendFile(path.join(reactPath, "index.html"), (err) => {
-    if (err) {
-      console.log("Error sending client/dist/index.html:", err.status || 500);
-      res
-        .status(err.status || 500)
-        .send("Error sending client/dist/index.html - have you run `npm run build`?");
-    }
-  });
+app.get("*", (req, res, next) => {
+  const indexPath = path.join(reactPath, "index.html");
+
+  // Check if the file exists before sending
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    console.error("Error: index.html not found at", indexPath);
+    res.status(500).send("Error: index.html not found. Please ensure the build was successful.");
+  }
 });
 
 // any server errors cause this function to run
