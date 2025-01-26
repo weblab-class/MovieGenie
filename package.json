@@ -4,9 +4,9 @@
   "description": "Movie recommendation website",
   "main": "server/server.js",
   "scripts": {
-    "start": "node server/server.js",
-    "dev": "nodemon --ignore client/",
-    "build": "npm install && vite build",
+    "start": "nodemon --ignore client/",
+    "build": "vite build --outDir client/dist",
+    "dev": "vite dev",
     "preview": "vite preview"
   },
   "repository": {
