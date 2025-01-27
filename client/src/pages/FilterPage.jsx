@@ -7,40 +7,64 @@ const FilterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
-    with_genres: "",
-    vote_average_gte: "",
-    sort_by: "",
-    with_original_language: "",
+    language: "",
+    min_imdb: "",
+    genre: "",
+    era: "",
+    // is_popular: "",
   });
 
+  // Generate decade options from 1950 to current year
+  const generateDecadeOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const endDecade = Math.floor(currentYear / 10) * 10;
+    const decades = [];
+    
+    for (let decade = 1950; decade <= endDecade; decade += 10) {
+      decades.push({
+        id: `${decade}`,
+        name: `${decade}s (${decade}-${decade + 9})`,
+        start: `${decade}-01-01`,
+        end: `${decade + 9}-12-31`
+      });
+    }
+    
+    return decades;
+  };
+
   const filterOptions = {
-    with_genres: [
-      { id: 28, name: "Action" },
-      { id: 12, name: "Adventure" },
-      { id: 16, name: "Animation" },
-      { id: 35, name: "Comedy" },
-      { id: 80, name: "Crime" },
-      { id: 18, name: "Drama" },
-      { id: 14, name: "Fantasy" },
-      { id: 27, name: "Horror" },
-      { id: 10749, name: "Romance" },
-      { id: 878, name: "Science Fiction" },
-    ],
-    vote_average_gte: Array.from({ length: 10 }, (_, i) => ({ id: i + 1, name: `${i + 1}+ Stars` })),
-    sort_by: [
-      { id: "popularity.desc", name: "Most Popular" },
-      { id: "vote_average.desc", name: "Highest Rated" },
-      { id: "release_date.desc", name: "Recently Released" },
-      { id: "revenue.desc", name: "Highest Revenue" },
-    ],
-    with_original_language: [
+    language: [
       { id: "en", name: "English" },
       { id: "es", name: "Spanish" },
       { id: "fr", name: "French" },
+      { id: "de", name: "German" },
       { id: "ja", name: "Japanese" },
       { id: "ko", name: "Korean" },
       { id: "hi", name: "Hindi" },
     ],
+    min_imdb: Array.from({ length: 10 }, (_, i) => ({
+      id: (i + 1).toString(),
+      name: `${i + 1}.0+`,
+    })),
+    genre: [
+      { id: "28", name: "Action" },
+      { id: "12", name: "Adventure" },
+      { id: "16", name: "Animation" },
+      { id: "35", name: "Comedy" },
+      { id: "80", name: "Crime" },
+      { id: "18", name: "Drama" },
+      { id: "14", name: "Fantasy" },
+      { id: "27", name: "Horror" },
+      { id: "10749", name: "Romance" },
+      { id: "878", name: "Science Fiction" },
+    ],
+    era: generateDecadeOptions(),
+    /* Trending filter - temporarily disabled
+    is_popular: [
+      { id: "true", name: "Yes" },
+      { id: "false", name: "No" },
+    ],
+    */
   };
 
   const handleFilterChange = (filterType, value) => {
@@ -48,7 +72,7 @@ const FilterPage = () => {
       ...prev,
       [filterType]: value,
     }));
-    setError(null); // Clear any previous errors when user changes filters
+    setError(null);
   };
 
   const handleSubmit = async () => {
@@ -56,9 +80,22 @@ const FilterPage = () => {
       setIsLoading(true);
       setError(null);
 
+      // Create a copy of filters for API request
+      const apiFilters = { ...filters };
+      
+      // If era is selected, add the date range parameters
+      if (filters.era) {
+        const selectedEra = filterOptions.era.find(era => era.id === filters.era);
+        if (selectedEra) {
+          apiFilters.primary_release_date_gte = selectedEra.start;
+          apiFilters.primary_release_date_lte = selectedEra.end;
+        }
+        delete apiFilters.era;
+      }
+
       // Remove empty filters
       const validFilters = Object.fromEntries(
-        Object.entries(filters).filter(([_, value]) => value !== "")
+        Object.entries(apiFilters).filter(([_, value]) => value !== "")
       );
 
       // Make API request
@@ -87,10 +124,11 @@ const FilterPage = () => {
 
   const getFilterLabel = (filterType) => {
     const labels = {
-      with_genres: "Genre",
-      vote_average_gte: "Minimum Rating",
-      sort_by: "Sort By",
-      with_original_language: "Language",
+      language: "Language",
+      min_imdb: "Minimum IMDB Rating",
+      genre: "Genre",
+      era: "Movie Era",
+      // is_popular: "Trending",
     };
     return labels[filterType] || filterType;
   };
@@ -118,11 +156,7 @@ const FilterPage = () => {
           </div>
         ))}
       </div>
-      <button 
-        className="generate-button" 
-        onClick={handleSubmit}
-        disabled={isLoading}
-      >
+      <button className="generate-button" onClick={handleSubmit} disabled={isLoading}>
         {isLoading ? "Loading..." : "Generate"}
       </button>
     </div>
