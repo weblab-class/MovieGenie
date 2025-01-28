@@ -1,23 +1,66 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import "../styles/ResultsPage.css";
 
 const ResultsPage = () => {
   const location = useLocation();
-  const movies = location.state?.movies || [];
+  const allMovies = location.state?.movies || [];
+  const [currentPage, setCurrentPage] = useState(1);
+  const moviesPerPage = 20;
+
+  // Calculate pagination values
+  const totalPages = Math.ceil(allMovies.length / moviesPerPage);
+  const startIndex = (currentPage - 1) * moviesPerPage;
+  const endIndex = startIndex + moviesPerPage;
+  const currentMovies = allMovies.slice(startIndex, endIndex);
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  };
 
   return (
     <div className="results-container">
       <div className="results-header">
         <h1>Your Movie Recommendations</h1>
-        <p>Found {movies.length} movies matching your criteria</p>
+        <p>Found {allMovies.length} movies matching your criteria</p>
       </div>
+
+      {allMovies.length > 0 && (
+        <div className="pagination-controls">
+          <button
+            onClick={handlePrevPage}
+            disabled={currentPage === 1}
+            className="pagination-button"
+          >
+            Previous Page
+          </button>
+          <span className="page-info">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className="pagination-button"
+          >
+            Next Page
+          </button>
+        </div>
+      )}
+
       <div className="movies-grid">
-        {movies.map((movie) => (
+        {currentMovies.map((movie) => (
           <div key={movie.id} className="movie-card">
             <div className="movie-poster">
               <img
-                src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Poster'}
+                src={
+                  movie.poster_path
+                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                    : "https://via.placeholder.com/500x750?text=No+Poster"
+                }
                 alt={movie.title}
               />
             </div>
@@ -30,10 +73,33 @@ const ResultsPage = () => {
           </div>
         ))}
       </div>
-      {movies.length === 0 && (
+
+      {allMovies.length === 0 && (
         <div className="no-results">
           <h2>No movies found matching your criteria</h2>
           <p>Try adjusting your filters to see more results</p>
+        </div>
+      )}
+
+      {allMovies.length > 0 && (
+        <div className="pagination-controls">
+          <button
+            onClick={handlePrevPage}
+            disabled={currentPage === 1}
+            className="pagination-button"
+          >
+            Previous Page
+          </button>
+          <span className="page-info">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className="pagination-button"
+          >
+            Next Page
+          </button>
         </div>
       )}
     </div>

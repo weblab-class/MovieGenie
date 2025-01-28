@@ -8,10 +8,15 @@ const FilterPage = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     language: "",
-    min_imdb: "",
+    display_language: "",
     genre: "",
     era: "",
-    // is_popular: "",
+    min_imdb: "",
+    rating: "",
+    watch_provider: "",
+    runtime: "",
+    sort_by: "popularity.desc",
+    safeSearch: "Yes",
   });
 
   // Generate decade options from 1950 to current year
@@ -19,19 +24,20 @@ const FilterPage = () => {
     const currentYear = new Date().getFullYear();
     const endDecade = Math.floor(currentYear / 10) * 10;
     const decades = [];
-    
+
     for (let decade = 1950; decade <= endDecade; decade += 10) {
       decades.push({
         id: `${decade}`,
         name: `${decade}s (${decade}-${decade + 9})`,
         start: `${decade}-01-01`,
-        end: `${decade + 9}-12-31`
+        end: `${decade + 9}-12-31`,
       });
     }
-    
+
     return decades;
   };
 
+  // This decides the ordering of how it will be rendered to the page.
   const filterOptions = {
     language: [
       { id: "en", name: "English" },
@@ -42,10 +48,15 @@ const FilterPage = () => {
       { id: "ko", name: "Korean" },
       { id: "hi", name: "Hindi" },
     ],
-    min_imdb: Array.from({ length: 10 }, (_, i) => ({
-      id: (i + 1).toString(),
-      name: `${i + 1}.0+`,
-    })),
+    display_language: [
+      { id: "en", name: "English" },
+      { id: "es", name: "Spanish" },
+      { id: "fr", name: "French" },
+      { id: "de", name: "German" },
+      { id: "ja", name: "Japanese" },
+      { id: "ko", name: "Korean" },
+      { id: "hi", name: "Hindi" },
+    ],
     genre: [
       { id: "28", name: "Action" },
       { id: "12", name: "Adventure" },
@@ -59,12 +70,43 @@ const FilterPage = () => {
       { id: "878", name: "Science Fiction" },
     ],
     era: generateDecadeOptions(),
-    /* Trending filter - temporarily disabled
-    is_popular: [
-      { id: "true", name: "Yes" },
-      { id: "false", name: "No" },
+    min_imdb: Array.from({ length: 10 }, (_, i) => ({
+      id: (i + 1).toString(),
+      name: `${i + 1}.0+`,
+    })),
+    rating: [
+      { id: "PG", name: "PG" },
+      { id: "PG-13", name: "PG-13" },
+      { id: "R", name: "R" },
+      { id: "NC-17", name: "NC-17" },
     ],
-    */
+    watch_provider: [
+      { id: "8", name: "Netflix" },
+      { id: "9", name: "Prime Video" },
+      { id: "337", name: "Disney+" },
+      { id: "384", name: "HBO Max" },
+      { id: "15", name: "Hulu" },
+      { id: "2", name: "Apple TV+" },
+      { id: "283", name: "Crunchyroll" },
+      { id: "387", name: "Peacock" },
+      { id: "257", name: "fuboTV" },
+    ],
+    runtime: [
+      { id: "30-60", name: "30-60 minutes" },
+      { id: "60-90", name: "60-90 minutes" },
+      { id: "90-120", name: "90-120 minutes" },
+      { id: "120+", name: "120+ minutes" },
+    ],
+    sort_by: [
+      { id: "popularity.desc", name: "Popularity" },
+      { id: "release_date.desc", name: "Release Date" },
+      { id: "revenue.desc", name: "Revenue" },
+      { id: "original_title.asc", name: "Title" },
+    ],
+    safeSearch: [
+      { id: "Yes", name: "Yes" },
+      { id: "No", name: "No" },
+    ],
   };
 
   const handleFilterChange = (filterType, value) => {
@@ -82,10 +124,10 @@ const FilterPage = () => {
 
       // Create a copy of filters for API request
       const apiFilters = { ...filters };
-      
+
       // If era is selected, add the date range parameters
       if (filters.era) {
-        const selectedEra = filterOptions.era.find(era => era.id === filters.era);
+        const selectedEra = filterOptions.era.find((era) => era.id === filters.era);
         if (selectedEra) {
           apiFilters.primary_release_date_gte = selectedEra.start;
           apiFilters.primary_release_date_lte = selectedEra.end;
@@ -124,11 +166,16 @@ const FilterPage = () => {
 
   const getFilterLabel = (filterType) => {
     const labels = {
-      language: "Language",
-      min_imdb: "Minimum IMDB Rating",
+      language: "Primary Language",
+      display_language: "Display Language",
       genre: "Genre",
       era: "Movie Era",
-      // is_popular: "Trending",
+      min_imdb: "Minimum IMDB Rating",
+      rating: "Maximum Rating",
+      watch_provider: "Streaming Service",
+      runtime: "Runtime",
+      sort_by: "Sort By",
+      safeSearch: "Safe Search",
     };
     return labels[filterType] || filterType;
   };
