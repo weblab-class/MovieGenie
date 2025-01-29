@@ -6,6 +6,7 @@ import ResultsPage from "./pages/ResultsPage";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
 import AboutPage from "./pages/AboutPage";
+import WatchListPage from "./pages/WatchListPage";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import {
@@ -20,10 +21,11 @@ const GOOGLE_CLIENT_ID = "920670602163-kot52u1ps9vbpdr67l7q9u5m59gjjqeu.apps.goo
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route errorElement={<NotFound />} element={<App />}>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/filter" element={<FilterPage />} />
-      <Route path="/results" element={<ResultsPage />} />
+      <Route index element={<LandingPage />} />
+      <Route path="filter" element={<FilterPage />} />
+      <Route path="results" element={<ResultsPage />} />
       <Route path="/about" element={<AboutPage />} />
+      <Route path="watchlist" element={<WatchListPage />} />
     </Route>
   )
 );

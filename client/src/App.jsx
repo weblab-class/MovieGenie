@@ -7,6 +7,7 @@ import LandingPage from "./pages/LandingPage";
 import FilterPage from "./pages/FilterPage";
 import ResultsPage from "./pages/ResultsPage";
 import AboutPage from "./pages/AboutPage";
+import WatchListPage from "./pages/WatchListPage";
 
 import "./styles/App.css";
 
@@ -50,6 +51,9 @@ const App = () => {
                 <Link to="/about" className="nav-button">
                   About
                 </Link>
+                <Link to="/watchlist" className="nav-button">
+                  Watch List
+                </Link>
                 <button
                   className="nav-button"
                   onClick={() => {
@@ -67,7 +71,7 @@ const App = () => {
 
         <Routes>
           <Route
-            path="/"
+            path="/*"
             element={user ? <Navigate to="/filter" /> : <LandingPage setUser={setUser} />}
           />
           <Route
@@ -91,6 +95,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <AboutPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/watchlist"
+            element={
+              <ProtectedRoute>
+                <WatchListPage />
               </ProtectedRoute>
             }
           />

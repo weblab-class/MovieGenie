@@ -8,12 +8,36 @@ const WatchListPage = () => {
 
   useEffect(() => {
     // Fetch the user's watch list when component mounts
-    fetch("/api/watchlist")
-      .then((res) => res.json())
-      .then((data) => {
-        setWatchList(data);
+    console.log("Fetching watch list...");
+    fetch("/api/watchlist", {
+      credentials: "include",
+      headers: {
+        "Accept": "application/json"
+      }
+    })
+      .then(async (res) => {
+        console.log("Response status:", res.status);
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("Error response:", errorText);
+          throw new Error(`Failed to fetch watch list: ${res.status}`);
+        }
+        return res.json();
       })
-      .catch((error) => console.error("Error fetching watch list:", error));
+      .then((data) => {
+        console.log("Watch list data received:", data);
+        if (Array.isArray(data)) {
+          console.log(`Found ${data.length} movies in watch list`);
+          setWatchList(data);
+        } else {
+          console.error("Unexpected data format:", data);
+          setWatchList([]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching watch list:", error);
+        setWatchList([]);
+      });
   }, []);
 
   // Calculate pagination values
@@ -21,6 +45,14 @@ const WatchListPage = () => {
   const startIndex = (currentPage - 1) * moviesPerPage;
   const endIndex = startIndex + moviesPerPage;
   const currentMovies = watchList.slice(startIndex, endIndex);
+
+  console.log("Current watch list state:", {
+    total: watchList.length,
+    currentPage,
+    startIndex,
+    endIndex,
+    visibleMovies: currentMovies.length
+  });
 
   const handlePrevPage = () => {
     setCurrentPage((prev) => Math.max(1, prev - 1));
@@ -31,14 +63,30 @@ const WatchListPage = () => {
   };
 
   const handleRemoveFromWatchList = (movieId) => {
-    fetch(`/api/watchlist/${movieId}`, {
+    console.log("Removing movie from watch list:", movieId);
+    fetch(`/api/watchlist/remove/${movieId}`, {
       method: "DELETE",
+      credentials: "include",
     })
-      .then((res) => res.json())
-      .then(() => {
-        setWatchList((prev) => prev.filter((movie) => movie.id !== movieId));
+      .then(async (res) => {
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("Error response:", errorText);
+          throw new Error(`Failed to remove from watch list: ${res.status}`);
+        }
+        return res.json();
       })
-      .catch((error) => console.error("Error removing from watch list:", error));
+      .then((updatedList) => {
+        console.log("Updated watch list received:", updatedList);
+        if (Array.isArray(updatedList)) {
+          setWatchList(updatedList);
+        } else {
+          console.error("Unexpected data format from remove:", updatedList);
+        }
+      })
+      .catch((error) => {
+        console.error("Error removing from watch list:", error);
+      });
   };
 
   return (
