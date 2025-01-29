@@ -158,6 +158,11 @@ const ResultsPage = () => {
                 }
                 alt={movie.title}
               />
+              <div className="movie-overlay">
+                <div className="movie-description">
+                  <p>{movie.overview}</p>
+                </div>
+              </div>
               <button
                 className={`watch-list-button ${watchList.has(movie.id) ? "in-list" : ""} ${
                   isLoading[movie.id] ? "loading" : ""
@@ -173,7 +178,6 @@ const ResultsPage = () => {
               <h3>{movie.title}</h3>
               <p className="movie-rating">★ {movie.vote_average.toFixed(1)}/10</p>
               <p className="movie-date">{new Date(movie.release_date).getFullYear()}</p>
-              <p className="movie-overview">{movie.overview}</p>
             </div>
           </div>
         ))}
