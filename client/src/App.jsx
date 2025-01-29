@@ -6,6 +6,7 @@ import logo from "./assets/logo.png";
 import LandingPage from "./pages/LandingPage";
 import FilterPage from "./pages/FilterPage";
 import ResultsPage from "./pages/ResultsPage";
+import AboutPage from "./pages/AboutPage";
 
 import "./styles/App.css";
 
@@ -16,13 +17,10 @@ const App = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Try to get user data when the app loads
     fetch("/api/whoami")
       .then((res) => res.json())
       .then((user) => {
-        if (user._id) {
-          setUser(user);
-        }
+        if (user._id) setUser(user);
       });
   }, []);
 
@@ -36,18 +34,23 @@ const App = () => {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className={`app-container ${user ? 'has-navbar' : ''}`}>
+      <div className={`app-container ${user ? "has-navbar" : ""}`}>
         {user && (
           <nav className="navbar">
             <div className="nav-content">
-              <Link to="/filter" className="nav-logo">
+              <Link to="/filter">
                 <img src={logo} alt="Logo" className="logo-image" />
               </Link>
               <div className="nav-links">
-                {location.pathname !== '/filter' && (
-                  <Link to="/filter" className="nav-button">Filter</Link>
+                {location.pathname !== "/filter" && (
+                  <Link to="/filter" className="nav-button">
+                    Filter
+                  </Link>
                 )}
-                <button 
+                <Link to="/about" className="nav-button">
+                  About
+                </Link>
+                <button
                   className="nav-button"
                   onClick={() => {
                     fetch("/api/logout", { method: "POST" }).then(() => {
@@ -55,14 +58,18 @@ const App = () => {
                     });
                   }}
                 >
-                  Log Out
+                  Logout
                 </button>
               </div>
             </div>
           </nav>
         )}
+
         <Routes>
-          <Route path="/" element={<LandingPage setUser={setUser} />} />
+          <Route
+            path="/"
+            element={user ? <Navigate to="/filter" /> : <LandingPage setUser={setUser} />}
+          />
           <Route
             path="/filter"
             element={
@@ -76,6 +83,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <ResultsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <ProtectedRoute>
+                <AboutPage />
               </ProtectedRoute>
             }
           />

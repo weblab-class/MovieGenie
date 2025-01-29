@@ -5,6 +5,7 @@ import FilterPage from "./pages/FilterPage";
 import ResultsPage from "./pages/ResultsPage";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
+import AboutPage from "./pages/AboutPage";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import {
@@ -22,11 +23,13 @@ const router = createBrowserRouter(
       <Route path="/" element={<LandingPage />} />
       <Route path="/filter" element={<FilterPage />} />
       <Route path="/results" element={<ResultsPage />} />
+      <Route path="/about" element={<AboutPage />} />
     </Route>
   )
 );
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <RouterProvider router={router} />

@@ -1,0 +1,17 @@
+.about-container {
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+  background-color: #0a192f;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.about-container h1 {
+  text-align: center;
+  color: #ffd700;
+  margin: 0;
+  padding-top: 2rem;
+  font-size: 2.5rem;
+}
