@@ -131,7 +131,7 @@ const FilterPage = () => {
       let moviesToFilter = [];
       if (filters.watchListOnly === "Yes") {
         const watchListResponse = await fetch("/api/watchlist", {
-          credentials: "include"
+          credentials: "include",
         });
         if (!watchListResponse.ok) {
           throw new Error("Failed to fetch watch list");
@@ -141,7 +141,7 @@ const FilterPage = () => {
 
       // Create a copy of filters for API request
       const apiFilters = { ...filters };
-      delete apiFilters.watchListOnly;  // Remove watch list filter as we've handled it
+      delete apiFilters.watchListOnly; // Remove watch list filter as we've handled it
 
       // If era is selected, add the date range parameters
       if (filters.era) {
@@ -172,13 +172,13 @@ const FilterPage = () => {
       // If showing watch list only, filter the watch list movies based on the criteria
       if (filters.watchListOnly === "Yes") {
         // Convert watch list movies to TMDB format for consistent filtering
-        const tmdbFormatMovies = moviesToFilter.map(movie => ({
+        const tmdbFormatMovies = moviesToFilter.map((movie) => ({
           id: movie.movieId,
           title: movie.title,
           poster_path: movie.poster_path,
           vote_average: movie.vote_average,
           release_date: movie.release_date,
-          overview: movie.overview
+          overview: movie.overview,
         }));
 
         // Apply filters to watch list movies
@@ -188,7 +188,7 @@ const FilterPage = () => {
         if (filters.era) {
           const selectedEra = filterOptions.era.find((era) => era.id === filters.era);
           if (selectedEra) {
-            filteredResults = filteredResults.filter(movie => {
+            filteredResults = filteredResults.filter((movie) => {
               const releaseDate = new Date(movie.release_date);
               const startDate = new Date(selectedEra.start);
               const endDate = new Date(selectedEra.end);
@@ -202,8 +202,8 @@ const FilterPage = () => {
           state: {
             movies: filteredResults,
             watchListOnly: true,
-            activeFilters
-          }
+            activeFilters,
+          },
         });
       } else {
         // Make regular TMDB API request for non-watch list filtering
@@ -224,8 +224,8 @@ const FilterPage = () => {
           state: {
             movies: data.results,
             watchListOnly: false,
-            activeFilters
-          }
+            activeFilters,
+          },
         });
       }
     } catch (error) {
