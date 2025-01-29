@@ -4,12 +4,12 @@ import "../styles/ResultsPage.css";
 
 const ResultsPage = () => {
   const location = useLocation();
-  const allMovies = location.state?.movies || [];
+  const movies = location.state?.movies || [];
   const watchListOnly = location.state?.watchListOnly || false;
   const activeFilters = location.state?.activeFilters || [];
   const [currentPage, setCurrentPage] = useState(1);
   const [watchList, setWatchList] = useState(new Set());
-  const [isLoading, setIsLoading] = useState({});  // Track loading state per movie
+  const [isLoading, setIsLoading] = useState({}); // Track loading state per movie
   const moviesPerPage = 20;
 
   useEffect(() => {
@@ -17,11 +17,11 @@ const ResultsPage = () => {
     const fetchWatchList = async () => {
       try {
         const response = await fetch("/api/watchlist", {
-          credentials: "include"
+          credentials: "include",
         });
         if (!response.ok) throw new Error("Failed to fetch watch list");
-        const movies = await response.json();
-        setWatchList(new Set(movies.map(movie => movie.movieId)));
+        const watchListMovies = await response.json();
+        setWatchList(new Set(watchListMovies.map((movie) => movie.movieId)));
       } catch (error) {
         console.error("Error fetching watch list:", error);
       }
@@ -30,16 +30,11 @@ const ResultsPage = () => {
     fetchWatchList();
   }, []);
 
-  // Filter movies based on watch list preference
-  const filteredMovies = watchListOnly 
-    ? allMovies.filter(movie => watchList.has(movie.id))
-    : allMovies;
-
   // Calculate pagination values
-  const totalPages = Math.ceil(filteredMovies.length / moviesPerPage);
+  const totalPages = Math.ceil(movies.length / moviesPerPage);
   const startIndex = (currentPage - 1) * moviesPerPage;
   const endIndex = startIndex + moviesPerPage;
-  const currentMovies = filteredMovies.slice(startIndex, endIndex);
+  const currentMovies = movies.slice(startIndex, endIndex);
 
   const handlePrevPage = () => {
     setCurrentPage((prev) => Math.max(1, prev - 1));
@@ -52,23 +47,23 @@ const ResultsPage = () => {
   const toggleWatchList = async (movie) => {
     try {
       // Set loading state for this specific movie
-      setIsLoading(prev => ({ ...prev, [movie.id]: true }));
-      
+      setIsLoading((prev) => ({ ...prev, [movie.id]: true }));
+
       const isInWatchList = watchList.has(movie.id);
-      
+
       if (isInWatchList) {
         // Remove from watch list
         const response = await fetch(`/api/watchlist/remove/${movie.id}`, {
           method: "DELETE",
-          credentials: "include"
+          credentials: "include",
         });
-        
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || "Failed to remove from watch list");
         }
-        
-        setWatchList(prev => {
+
+        setWatchList((prev) => {
           const newList = new Set(prev);
           newList.delete(movie.id);
           return newList;
@@ -87,16 +82,16 @@ const ResultsPage = () => {
             poster_path: movie.poster_path,
             vote_average: movie.vote_average,
             release_date: movie.release_date,
-            overview: movie.overview
+            overview: movie.overview,
           }),
         });
-        
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || "Failed to add to watch list");
         }
-        
-        setWatchList(prev => {
+
+        setWatchList((prev) => {
           const newList = new Set(prev);
           newList.add(movie.id);
           return newList;
@@ -107,7 +102,7 @@ const ResultsPage = () => {
       // Optionally show error to user here
     } finally {
       // Clear loading state for this specific movie
-      setIsLoading(prev => ({ ...prev, [movie.id]: false }));
+      setIsLoading((prev) => ({ ...prev, [movie.id]: false }));
     }
   };
 
@@ -116,11 +111,9 @@ const ResultsPage = () => {
       <div className="results-header">
         <h1>Your Movie Recommendations</h1>
         {activeFilters.length > 0 && (
-          <p className="active-filters">
-            Filters: {activeFilters.join(", ")}
-          </p>
+          <p className="active-filters">Filters: {activeFilters.join(", ")}</p>
         )}
-        <p>Found {filteredMovies.length} movies matching your criteria</p>
+        <p>Found {movies.length} movies matching your criteria</p>
         {watchListOnly && (
           <p className="watch-list-filter">Showing movies from your watch list only</p>
         )}
@@ -131,7 +124,7 @@ const ResultsPage = () => {
         )}
       </div>
 
-      {filteredMovies.length > 0 && (
+      {movies.length > 0 && (
         <div className="pagination-controls">
           <button
             onClick={handlePrevPage}
@@ -166,7 +159,9 @@ const ResultsPage = () => {
                 alt={movie.title}
               />
               <button
-                className={`watch-list-button ${watchList.has(movie.id) ? 'in-list' : ''} ${isLoading[movie.id] ? 'loading' : ''}`}
+                className={`watch-list-button ${watchList.has(movie.id) ? "in-list" : ""} ${
+                  isLoading[movie.id] ? "loading" : ""
+                }`}
                 onClick={() => toggleWatchList(movie)}
                 disabled={isLoading[movie.id]}
                 title={watchList.has(movie.id) ? "Remove from Watch List" : "Add to Watch List"}
@@ -184,14 +179,14 @@ const ResultsPage = () => {
         ))}
       </div>
 
-      {filteredMovies.length === 0 && (
+      {movies.length === 0 && (
         <div className="no-results">
           <h2>No movies found matching your criteria</h2>
           <p>Try adjusting your filters to see more results</p>
         </div>
       )}
 
-      {filteredMovies.length > 0 && (
+      {movies.length > 0 && (
         <div className="pagination-controls">
           <button
             onClick={handlePrevPage}

@@ -127,10 +127,21 @@ const FilterPage = () => {
       setIsLoading(true);
       setError(null);
 
+      // First, if showing watch list only, get the user's watch list
+      let moviesToFilter = [];
+      if (filters.watchListOnly === "Yes") {
+        const watchListResponse = await fetch("/api/watchlist", {
+          credentials: "include"
+        });
+        if (!watchListResponse.ok) {
+          throw new Error("Failed to fetch watch list");
+        }
+        moviesToFilter = await watchListResponse.json();
+      }
+
       // Create a copy of filters for API request
       const apiFilters = { ...filters };
-      const watchListOnly = apiFilters.watchListOnly;
-      delete apiFilters.watchListOnly;
+      delete apiFilters.watchListOnly;  // Remove watch list filter as we've handled it
 
       // If era is selected, add the date range parameters
       if (filters.era) {
@@ -154,33 +165,69 @@ const FilterPage = () => {
             value !== "" && key !== "watchListOnly" && key !== "sort_by" && key !== "safeSearch"
         )
         .map(([key, value]) => {
-          // Get the display name for the filter value
           const option = filterOptions[key]?.find((opt) => opt.id === value);
           return option ? option.name : value;
         });
 
-      // Make API request
-      const params = new URLSearchParams(validFilters);
-      const response = await fetch(`/api/discover?${params}`);
-      const data = await response.json();
+      // If showing watch list only, filter the watch list movies based on the criteria
+      if (filters.watchListOnly === "Yes") {
+        // Convert watch list movies to TMDB format for consistent filtering
+        const tmdbFormatMovies = moviesToFilter.map(movie => ({
+          id: movie.movieId,
+          title: movie.title,
+          poster_path: movie.poster_path,
+          vote_average: movie.vote_average,
+          release_date: movie.release_date,
+          overview: movie.overview
+        }));
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch movies");
+        // Apply filters to watch list movies
+        let filteredResults = tmdbFormatMovies;
+
+        // Apply era filter if selected
+        if (filters.era) {
+          const selectedEra = filterOptions.era.find((era) => era.id === filters.era);
+          if (selectedEra) {
+            filteredResults = filteredResults.filter(movie => {
+              const releaseDate = new Date(movie.release_date);
+              const startDate = new Date(selectedEra.start);
+              const endDate = new Date(selectedEra.end);
+              return releaseDate >= startDate && releaseDate <= endDate;
+            });
+          }
+        }
+
+        // Navigate with filtered watch list results
+        navigate("/results", {
+          state: {
+            movies: filteredResults,
+            watchListOnly: true,
+            activeFilters
+          }
+        });
+      } else {
+        // Make regular TMDB API request for non-watch list filtering
+        const params = new URLSearchParams(validFilters);
+        const response = await fetch(`/api/discover?${params}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to fetch movies");
+        }
+
+        if (!data.results || data.results.length === 0) {
+          setError("No movies found matching your criteria. Try adjusting your filters.");
+          return;
+        }
+
+        navigate("/results", {
+          state: {
+            movies: data.results,
+            watchListOnly: false,
+            activeFilters
+          }
+        });
       }
-
-      if (!data.results || data.results.length === 0) {
-        setError("No movies found matching your criteria. Try adjusting your filters.");
-        return;
-      }
-
-      // Navigate to results page with the movies data, watchListOnly preference, and active filters
-      navigate("/results", {
-        state: {
-          movies: data.results,
-          watchListOnly: watchListOnly === "Yes",
-          activeFilters,
-        },
-      });
     } catch (error) {
       console.error("Error fetching movies:", error);
       setError("Failed to fetch movies. Please try again later.");

@@ -353,16 +353,16 @@ router.post("/watchlist/add", auth.ensureLoggedIn, async (req, res) => {
   try {
     const { movieId, title, poster_path, vote_average, release_date, overview } = req.body;
     const user = await User.findById(req.user._id);
-    
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     // Convert movieId to number for consistent comparison
     const movieIdNum = Number(movieId);
-    
+
     // Check if movie is already in watch list
-    if (user.watchList.some(movie => movie.movieId === movieIdNum)) {
+    if (user.watchList.some((movie) => movie.movieId === movieIdNum)) {
       return res.status(400).json({ error: "Movie already in watch list" });
     }
 
@@ -372,7 +372,7 @@ router.post("/watchlist/add", auth.ensureLoggedIn, async (req, res) => {
       poster_path,
       vote_average,
       release_date,
-      overview
+      overview,
     });
 
     await user.save();
@@ -388,15 +388,15 @@ router.delete("/watchlist/remove/:movieId", auth.ensureLoggedIn, async (req, res
   try {
     const movieIdNum = Number(req.params.movieId);
     const user = await User.findById(req.user._id);
-    
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    
+
     // Convert all movieIds to numbers for comparison
-    user.watchList = user.watchList.filter(movie => movie.movieId !== movieIdNum);
+    user.watchList = user.watchList.filter((movie) => movie.movieId !== movieIdNum);
     await user.save();
-    
+
     res.json(user.watchList);
   } catch (error) {
     console.error("Error removing from watch list:", error);
