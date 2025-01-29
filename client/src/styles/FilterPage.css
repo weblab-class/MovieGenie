@@ -8,8 +8,16 @@
 .filter-container h1 {
   text-align: center;
   color: #ffd700;
-  margin-bottom: 3rem;
+  margin-bottom: 0.5rem;
   font-size: 2.5rem;
+}
+
+.filter-subtitle {
+  color: rgba(136, 146, 176, 0.8);  /* #8892b0 with opacity */
+  text-align: center;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  font-style: italic;
 }
 
 .filters-grid {

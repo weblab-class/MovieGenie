@@ -334,6 +334,76 @@ router.get("/discover", async (req, res) => {
   }
 });
 
+// Get user's watch list
+router.get("/watchlist", auth.ensureLoggedIn, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json(user.watchList);
+  } catch (error) {
+    console.error("Error getting watch list:", error);
+    res.status(500).json({ error: "Failed to get watch list" });
+  }
+});
+
+// Add a movie to watch list
+router.post("/watchlist/add", auth.ensureLoggedIn, async (req, res) => {
+  try {
+    const { movieId, title, poster_path, vote_average, release_date, overview } = req.body;
+    const user = await User.findById(req.user._id);
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Convert movieId to number for consistent comparison
+    const movieIdNum = Number(movieId);
+    
+    // Check if movie is already in watch list
+    if (user.watchList.some(movie => movie.movieId === movieIdNum)) {
+      return res.status(400).json({ error: "Movie already in watch list" });
+    }
+
+    user.watchList.push({
+      movieId: movieIdNum,
+      title,
+      poster_path,
+      vote_average,
+      release_date,
+      overview
+    });
+
+    await user.save();
+    res.json(user.watchList);
+  } catch (error) {
+    console.error("Error adding to watch list:", error);
+    res.status(500).json({ error: "Failed to add movie to watch list" });
+  }
+});
+
+// Remove a movie from watch list
+router.delete("/watchlist/remove/:movieId", auth.ensureLoggedIn, async (req, res) => {
+  try {
+    const movieIdNum = Number(req.params.movieId);
+    const user = await User.findById(req.user._id);
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    // Convert all movieIds to numbers for comparison
+    user.watchList = user.watchList.filter(movie => movie.movieId !== movieIdNum);
+    await user.save();
+    
+    res.json(user.watchList);
+  } catch (error) {
+    console.error("Error removing from watch list:", error);
+    res.status(500).json({ error: "Failed to remove movie from watch list" });
+  }
+});
+
 // anything else falls to this "not found" case
 router.all("*", (req, res) => {
   console.log(`API route not found: ${req.method} ${req.url}`);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/FilterPage.css";
 
@@ -17,6 +17,7 @@ const FilterPage = () => {
     runtime: "",
     sort_by: "popularity.desc",
     safeSearch: "Yes",
+    watchListOnly: "No",
   });
 
   // Generate decade options from 1950 to current year
@@ -75,10 +76,10 @@ const FilterPage = () => {
       name: `${i + 1}.0+`,
     })),
     rating: [
-      { id: "PG", name: "PG" },
-      { id: "PG-13", name: "PG-13" },
-      { id: "R", name: "R" },
-      { id: "NC-17", name: "NC-17" },
+      { id: "PG", name: "PG and below" },
+      { id: "PG-13", name: "PG-13 and below" },
+      { id: "R", name: "R and below" },
+      { id: "NC-17", name: "NC-17 and below" },
     ],
     watch_provider: [
       { id: "8", name: "Netflix" },
@@ -107,6 +108,10 @@ const FilterPage = () => {
       { id: "Yes", name: "Yes" },
       { id: "No", name: "No" },
     ],
+    watchListOnly: [
+      { id: "No", name: "No" },
+      { id: "Yes", name: "Yes" },
+    ],
   };
 
   const handleFilterChange = (filterType, value) => {
@@ -124,6 +129,8 @@ const FilterPage = () => {
 
       // Create a copy of filters for API request
       const apiFilters = { ...filters };
+      const watchListOnly = apiFilters.watchListOnly;
+      delete apiFilters.watchListOnly;
 
       // If era is selected, add the date range parameters
       if (filters.era) {
@@ -140,6 +147,18 @@ const FilterPage = () => {
         Object.entries(apiFilters).filter(([_, value]) => value !== "")
       );
 
+      // Create a list of active filter names
+      const activeFilters = Object.entries(filters)
+        .filter(
+          ([key, value]) =>
+            value !== "" && key !== "watchListOnly" && key !== "sort_by" && key !== "safeSearch"
+        )
+        .map(([key, value]) => {
+          // Get the display name for the filter value
+          const option = filterOptions[key]?.find((opt) => opt.id === value);
+          return option ? option.name : value;
+        });
+
       // Make API request
       const params = new URLSearchParams(validFilters);
       const response = await fetch(`/api/discover?${params}`);
@@ -154,8 +173,14 @@ const FilterPage = () => {
         return;
       }
 
-      // Navigate to results page with the movies data
-      navigate("/results", { state: { movies: data.results } });
+      // Navigate to results page with the movies data, watchListOnly preference, and active filters
+      navigate("/results", {
+        state: {
+          movies: data.results,
+          watchListOnly: watchListOnly === "Yes",
+          activeFilters,
+        },
+      });
     } catch (error) {
       console.error("Error fetching movies:", error);
       setError("Failed to fetch movies. Please try again later.");
@@ -171,11 +196,12 @@ const FilterPage = () => {
       genre: "Genre",
       era: "Movie Era",
       min_imdb: "Minimum IMDB Rating",
-      rating: "Maximum Rating",
+      rating: "Certification (if available)",
       watch_provider: "Streaming Service",
       runtime: "Runtime",
       sort_by: "Sort By",
       safeSearch: "Safe Search",
+      watchListOnly: "Show Watch List Only",
     };
     return labels[filterType] || filterType;
   };
@@ -183,6 +209,7 @@ const FilterPage = () => {
   return (
     <div className="filter-container">
       <h1>What vibe are you looking for?</h1>
+      <p className="filter-subtitle">All filters are optional - customize as much as you'd like!</p>
       {error && <div className="error-message">{error}</div>}
       <div className="filters-grid">
         {Object.entries(filterOptions).map(([filterType, options]) => (
