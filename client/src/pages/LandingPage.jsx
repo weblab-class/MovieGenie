@@ -58,8 +58,8 @@ const LandingPage = ({ setUser }) => {
   return (
     <div className="landing-container">
       <div className="content">
-        {!isLoggedIn && <img src={logo} alt="MovieGenie Logo" className="logo" />}
         <div className="landing-content">
+          {!isLoggedIn && <img src={logo} alt="MovieGenie Logo" className="logo" />}
           <div className="title-container">
             <h1 className={isTyping ? "typing" : ""}>{displayText}</h1>
           </div>
