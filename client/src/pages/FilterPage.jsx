@@ -182,7 +182,8 @@ const FilterPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch movies");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch movies");
       }
 
       const movies = await response.json();

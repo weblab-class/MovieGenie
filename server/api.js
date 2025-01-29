@@ -28,6 +28,11 @@ const router = express.Router();
 //initialize socket
 const socketManager = require("./server-socket");
 
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
+if (!TMDB_API_KEY) {
+  console.error("WARNING: TMDB_API_KEY environment variable is not set!");
+}
+
 router.post("/login", auth.login);
 router.post("/logout", auth.logout);
 router.get("/whoami", (req, res) => {
@@ -153,10 +158,6 @@ router.delete("/watchlist/remove/:movieId", auth.ensureLoggedIn, async (req, res
 });
 
 // TMDB API configuration
-const TMDB_API_KEY = process.env.TMDB_API_KEY;
-if (!TMDB_API_KEY) {
-  console.error("TMDB_API_KEY is not set in environment variables");
-}
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 // Rating mappings from different countries to US ratings
@@ -239,11 +240,12 @@ router.post("/movies/discover", auth.ensureLoggedIn, async (req, res) => {
       filters: req.body,
       user: req.user?._id,
       session: req.session,
+      hasApiKey: !!TMDB_API_KEY,
     });
 
     if (!TMDB_API_KEY) {
       console.error("TMDB_API_KEY is missing or undefined");
-      throw new Error("TMDB API key is not configured");
+      return res.status(500).json({ error: "Movie API configuration error. Please contact support." });
     }
 
     const filters = req.body;
