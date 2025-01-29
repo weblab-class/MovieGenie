@@ -24,7 +24,7 @@ const router = createBrowserRouter(
       <Route index element={<LandingPage />} />
       <Route path="filter" element={<FilterPage />} />
       <Route path="results" element={<ResultsPage />} />
-      <Route path="/about" element={<AboutPage />} />
+      <Route path="about" element={<AboutPage />} />
       <Route path="watchlist" element={<WatchListPage />} />
     </Route>
   )
