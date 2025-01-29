@@ -16,14 +16,19 @@ const ResultsPage = () => {
     // Fetch user's watch list when component mounts
     const fetchWatchList = async () => {
       try {
+        console.log("Fetching watch list...");
         const response = await fetch("/api/watchlist", {
           credentials: "include",
         });
-        if (!response.ok) throw new Error("Failed to fetch watch list");
+        if (!response.ok) {
+          throw new Error("Failed to fetch watch list");
+        }
         const watchListMovies = await response.json();
-        setWatchList(new Set(watchListMovies.map((movie) => movie.movieId)));
+        console.log("Watch list data:", watchListMovies);
+        setWatchList(new Set(watchListMovies.map((movie) => movie.id)));
       } catch (error) {
         console.error("Error fetching watch list:", error);
+        setWatchList(new Set());
       }
     };
 
@@ -50,6 +55,7 @@ const ResultsPage = () => {
       setIsLoading((prev) => ({ ...prev, [movie.id]: true }));
 
       const isInWatchList = watchList.has(movie.id);
+      console.log("Movie in watch list?", isInWatchList, movie.id);
 
       if (isInWatchList) {
         // Remove from watch list
@@ -63,13 +69,12 @@ const ResultsPage = () => {
           throw new Error(errorData.error || "Failed to remove from watch list");
         }
 
-        setWatchList((prev) => {
-          const newList = new Set(prev);
-          newList.delete(movie.id);
-          return newList;
-        });
+        const updatedList = await response.json();
+        console.log("Updated list after remove:", updatedList);
+        setWatchList(new Set(updatedList.map(movie => movie.id)));
       } else {
         // Add to watch list
+        console.log("Adding movie to watch list:", movie);
         const response = await fetch("/api/watchlist/add", {
           method: "POST",
           credentials: "include",
@@ -87,21 +92,19 @@ const ResultsPage = () => {
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to add to watch list");
+          const errorText = await response.text();
+          console.error("Error response:", errorText);
+          throw new Error("Failed to add to watch list");
         }
 
-        setWatchList((prev) => {
-          const newList = new Set(prev);
-          newList.add(movie.id);
-          return newList;
-        });
+        const updatedList = await response.json();
+        console.log("Updated list after add:", updatedList);
+        setWatchList(new Set(updatedList.map(movie => movie.id)));
       }
     } catch (error) {
       console.error("Error updating watch list:", error);
-      // Optionally show error to user here
     } finally {
-      // Clear loading state for this specific movie
+      // Clear loading state
       setIsLoading((prev) => ({ ...prev, [movie.id]: false }));
     }
   };

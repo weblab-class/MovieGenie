@@ -59,6 +59,11 @@ function populateCurrentUser(req, res, next) {
 
 function ensureLoggedIn(req, res, next) {
   if (!req.user) {
+    console.log("User not logged in:", {
+      session: req.session,
+      cookies: req.cookies,
+      headers: req.headers
+    });
     return res.status(401).send({ err: "not logged in" });
   }
 

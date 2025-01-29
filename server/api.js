@@ -54,7 +54,18 @@ router.post("/initsocket", (req, res) => {
 router.get("/watchlist", auth.ensureLoggedIn, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    res.json(user.watchList || []);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const watchList = user.watchList.map(movie => ({
+      id: movie.movieId,
+      title: movie.title,
+      poster_path: movie.poster_path,
+      vote_average: movie.vote_average,
+      release_date: movie.release_date,
+      overview: movie.overview
+    }));
+    res.json(watchList || []);
   } catch (error) {
     console.error("Error fetching watch list:", error);
     res.status(500).json({ error: "Failed to fetch watch list" });
@@ -62,19 +73,22 @@ router.get("/watchlist", auth.ensureLoggedIn, async (req, res) => {
 });
 
 // Add movie to watch list
-router.post("/watchlist", auth.ensureLoggedIn, async (req, res) => {
+router.post("/watchlist/add", auth.ensureLoggedIn, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
     
     // Check if movie already exists in watch list
-    const movieExists = user.watchList.some((movie) => movie.id === req.body.id);
+    const movieExists = user.watchList.some((movie) => movie.movieId === req.body.movieId);
     if (movieExists) {
       return res.status(400).json({ error: "Movie already in watch list" });
     }
 
     // Add movie to watch list
     user.watchList.push({
-      id: req.body.id,
+      movieId: req.body.movieId,
       title: req.body.title,
       poster_path: req.body.poster_path,
       vote_average: req.body.vote_average,
@@ -83,7 +97,17 @@ router.post("/watchlist", auth.ensureLoggedIn, async (req, res) => {
     });
 
     await user.save();
-    res.json(user.watchList);
+    
+    // Return the watch list in the format expected by the frontend
+    const watchList = user.watchList.map(movie => ({
+      id: movie.movieId,
+      title: movie.title,
+      poster_path: movie.poster_path,
+      vote_average: movie.vote_average,
+      release_date: movie.release_date,
+      overview: movie.overview
+    }));
+    res.json(watchList);
   } catch (error) {
     console.error("Error adding to watch list:", error);
     res.status(500).json({ error: "Failed to add to watch list" });
@@ -91,16 +115,29 @@ router.post("/watchlist", auth.ensureLoggedIn, async (req, res) => {
 });
 
 // Remove movie from watch list
-router.delete("/watchlist/:movieId", auth.ensureLoggedIn, async (req, res) => {
+router.delete("/watchlist/remove/:movieId", auth.ensureLoggedIn, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
     const movieId = parseInt(req.params.movieId);
     
     // Remove movie from watch list
-    user.watchList = user.watchList.filter((movie) => movie.id !== movieId);
-    
+    user.watchList = user.watchList.filter((movie) => movie.movieId !== movieId);
     await user.save();
-    res.json(user.watchList);
+    
+    // Return the updated watch list in the format expected by the frontend
+    const watchList = user.watchList.map(movie => ({
+      id: movie.movieId,
+      title: movie.title,
+      poster_path: movie.poster_path,
+      vote_average: movie.vote_average,
+      release_date: movie.release_date,
+      overview: movie.overview
+    }));
+    res.json(watchList);
   } catch (error) {
     console.error("Error removing from watch list:", error);
     res.status(500).json({ error: "Failed to remove from watch list" });
@@ -388,76 +425,6 @@ router.get("/discover", async (req, res) => {
   } catch (error) {
     console.error("TMDB API Error:", error);
     res.status(500).json({ error: error.message });
-  }
-});
-
-// Get user's watch list
-router.get("/watchlist", auth.ensureLoggedIn, async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    res.json(user.watchList);
-  } catch (error) {
-    console.error("Error getting watch list:", error);
-    res.status(500).json({ error: "Failed to get watch list" });
-  }
-});
-
-// Add a movie to watch list
-router.post("/watchlist/add", auth.ensureLoggedIn, async (req, res) => {
-  try {
-    const { movieId, title, poster_path, vote_average, release_date, overview } = req.body;
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    // Convert movieId to number for consistent comparison
-    const movieIdNum = Number(movieId);
-
-    // Check if movie is already in watch list
-    if (user.watchList.some((movie) => movie.movieId === movieIdNum)) {
-      return res.status(400).json({ error: "Movie already in watch list" });
-    }
-
-    user.watchList.push({
-      movieId: movieIdNum,
-      title,
-      poster_path,
-      vote_average,
-      release_date,
-      overview,
-    });
-
-    await user.save();
-    res.json(user.watchList);
-  } catch (error) {
-    console.error("Error adding to watch list:", error);
-    res.status(500).json({ error: "Failed to add movie to watch list" });
-  }
-});
-
-// Remove a movie from watch list
-router.delete("/watchlist/remove/:movieId", auth.ensureLoggedIn, async (req, res) => {
-  try {
-    const movieIdNum = Number(req.params.movieId);
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    // Convert all movieIds to numbers for comparison
-    user.watchList = user.watchList.filter((movie) => movie.movieId !== movieIdNum);
-    await user.save();
-
-    res.json(user.watchList);
-  } catch (error) {
-    console.error("Error removing from watch list:", error);
-    res.status(500).json({ error: "Failed to remove movie from watch list" });
   }
 });
 

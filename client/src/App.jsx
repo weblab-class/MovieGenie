@@ -6,6 +6,7 @@ import logo from "./assets/logo.png";
 import LandingPage from "./pages/LandingPage";
 import FilterPage from "./pages/FilterPage";
 import ResultsPage from "./pages/ResultsPage";
+import WatchListPage from "./pages/WatchListPage";
 
 import "./styles/App.css";
 
@@ -47,6 +48,7 @@ const App = () => {
                 {location.pathname !== '/filter' && (
                   <Link to="/filter" className="nav-button">Filter</Link>
                 )}
+                <Link to="/watchlist" className="nav-button">Watch List</Link>
                 <button 
                   className="nav-button"
                   onClick={() => {
@@ -62,7 +64,7 @@ const App = () => {
           </nav>
         )}
         <Routes>
-          <Route path="/" element={<LandingPage setUser={setUser} />} />
+          <Route path="/*" element={<LandingPage setUser={setUser} />} />
           <Route
             path="/filter"
             element={
@@ -76,6 +78,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <ResultsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/watchlist"
+            element={
+              <ProtectedRoute>
+                <WatchListPage />
               </ProtectedRoute>
             }
           />
