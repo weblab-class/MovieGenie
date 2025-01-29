@@ -15,6 +15,10 @@
 
 // validator runs some basic checks to make sure you've set everything up correctly
 // this is a tool provided by staff, so you don't need to worry about it
+
+// Log the TMDB API Key (temporary for debugging)
+// console.log("TMDB API Key in Render:", process.env.TMDB_API_KEY);
+
 const validator = require("./validator");
 validator.checkSetup();
 
@@ -26,6 +30,7 @@ const http = require("http");
 const express = require("express"); // backend framework for our node server.
 const session = require("express-session"); // library that stores info about each connected user
 const mongoose = require("mongoose"); // library to connect to MongoDB
+const MongoStore = require("connect-mongo");
 const path = require("path"); // provide utilities for working with file and directory paths
 const fs = require("fs"); // provide utilities for working with file system
 
@@ -67,12 +72,15 @@ app.use(
     secret: process.env.SESSION_SECRET || "session-secret",
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: mongoConnectionURL,
+      dbName: databaseName,
+    }),
     cookie: {
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined
-    }
+    },
   })
 );
 
