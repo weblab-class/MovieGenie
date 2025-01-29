@@ -1,43 +1,88 @@
 .filter-container {
   min-height: 100vh;
-  padding: 0;
+  padding: 0 0 5rem 0;
   margin: 0;
   background-color: #0a192f;
   color: #ffffff;
+  position: relative;
 }
 
+/* Background image and overlay */
+.filter-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('../assets/bg-movie-night.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  z-index: 0;
+  filter: blur(4px);
+}
+
+/* Ensure content stays above the background */
 .filter-container > * {
-  margin: 0 2rem;
+  position: relative;
+  z-index: 1;
+  margin: 0 1rem;
 }
 
 .filter-container h1 {
   text-align: center;
   color: #ffd700;
   margin: 0;
-  padding-top: 0.5rem;
-  font-size: 2.5rem;
+  padding-top: 2.5rem;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  min-height: 3rem; /* Prevent layout shift during typing */
 }
 
 .filter-subtitle {
   color: rgba(136, 146, 176, 0.8);
   text-align: center;
-  font-size: 1.1rem;
-  margin: 0.5rem 0 1.5rem 0;
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
+  margin: 0.5rem 0 3.5rem 0;
   font-style: italic;
+}
+
+.filters-sections {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.filter-section {
+  margin: 2rem 0;
+}
+
+.filter-section:first-child {
+  margin-top: 0;
+}
+
+.section-heading {
+  color: #ffd700;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
 }
 
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
-  max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 0; /* Prevents overflow in flex items */
 }
 
 .filter-group label {
@@ -48,24 +93,28 @@
 .filter-group select {
   padding: 0.8rem;
   border-radius: 8px;
-  border: 1px solid #4a5568;
-  background-color: #1a2942;
+  border: 1px solid #5a6b8a;
+  background-color: #2a4065;
   color: #ffffff;
   font-size: 1rem;
   cursor: pointer;
+  width: 100%;
+  max-width: 100%; /* Prevents select from overflowing */
 }
 
 .generate-button {
   display: block;
   margin: 3rem auto;
   padding: 1rem 3rem;
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 3vw, 1.2rem);
   background-color: #ffd700;
   color: #0a192f;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: transform 0.2s;
+  width: auto;
+  max-width: 90%;
 }
 
 .generate-button:hover {
@@ -77,9 +126,10 @@
   border: 1px solid #ff4444;
   color: #ff4444;
   padding: 1rem;
-  margin: 1rem 0;
+  margin: 1rem auto;
   border-radius: 8px;
   text-align: center;
+  max-width: 90%;
 }
 
 .generate-button:disabled {
@@ -92,4 +142,57 @@ select:disabled {
   background-color: #2d3748;
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background-color: #ffd700;
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  vertical-align: middle;
+}
+
+/* Small screen adjustments */
+@media (max-width: 640px) {
+  .filter-subtitle {
+    margin-bottom: 4rem;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .filter-container > * {
+    margin: 0 0.5rem;
+  }
+
+  .filters-sections {
+    padding: 0 0.5rem;
+  }
+
+  .generate-button {
+    margin: 2rem auto;
+    padding: 0.8rem 2rem;
+    width: 90%;
+  }
+}
+
+/* Medium screen adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .filters-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .filter-container > * {
+    margin: 0 1rem;
+  }
 }

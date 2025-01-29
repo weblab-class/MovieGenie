@@ -1,6 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/FilterPage.css";
+import bgMovieNight from "../assets/bg-movie-night.png";
+
+const TypewriterText = ({ text }) => {
+  const [displayText, setDisplayText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timer = setTimeout(() => {
+        setDisplayText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, 100); // Adjust speed here
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentIndex, text]);
+
+  return (
+    <h1>
+      {displayText}
+      <span className="cursor"></span>
+    </h1>
+  );
+};
 
 const FilterPage = () => {
   const navigate = useNavigate();
@@ -40,6 +64,29 @@ const FilterPage = () => {
 
   // This decides the ordering of how it will be rendered to the page.
   const filterOptions = {
+    watch_provider: [
+      { id: "8", name: "Netflix" },
+      { id: "9", name: "Prime Video" },
+      { id: "337", name: "Disney+" },
+      { id: "384", name: "HBO Max" },
+      { id: "15", name: "Hulu" },
+      { id: "2", name: "Apple TV+" },
+      { id: "283", name: "Crunchyroll" },
+      { id: "387", name: "Peacock" },
+      { id: "257", name: "fuboTV" },
+    ],
+    genre: [
+      { id: "28", name: "Action" },
+      { id: "12", name: "Adventure" },
+      { id: "16", name: "Animation" },
+      { id: "35", name: "Comedy" },
+      { id: "80", name: "Crime" },
+      { id: "18", name: "Drama" },
+      { id: "14", name: "Fantasy" },
+      { id: "27", name: "Horror" },
+      { id: "10749", name: "Romance" },
+      { id: "878", name: "Science Fiction" },
+    ],
     language: [
       { id: "en", name: "English" },
       { id: "es", name: "Spanish" },
@@ -58,18 +105,6 @@ const FilterPage = () => {
       { id: "ko", name: "Korean" },
       { id: "hi", name: "Hindi" },
     ],
-    genre: [
-      { id: "28", name: "Action" },
-      { id: "12", name: "Adventure" },
-      { id: "16", name: "Animation" },
-      { id: "35", name: "Comedy" },
-      { id: "80", name: "Crime" },
-      { id: "18", name: "Drama" },
-      { id: "14", name: "Fantasy" },
-      { id: "27", name: "Horror" },
-      { id: "10749", name: "Romance" },
-      { id: "878", name: "Science Fiction" },
-    ],
     era: generateDecadeOptions(),
     min_imdb: Array.from({ length: 10 }, (_, i) => ({
       id: (i + 1).toString(),
@@ -81,28 +116,11 @@ const FilterPage = () => {
       { id: "R", name: "R and below" },
       { id: "NC-17", name: "NC-17 and below" },
     ],
-    watch_provider: [
-      { id: "8", name: "Netflix" },
-      { id: "9", name: "Prime Video" },
-      { id: "337", name: "Disney+" },
-      { id: "384", name: "HBO Max" },
-      { id: "15", name: "Hulu" },
-      { id: "2", name: "Apple TV+" },
-      { id: "283", name: "Crunchyroll" },
-      { id: "387", name: "Peacock" },
-      { id: "257", name: "fuboTV" },
-    ],
     runtime: [
       { id: "30-60", name: "30-60 minutes" },
       { id: "60-90", name: "60-90 minutes" },
       { id: "90-120", name: "90-120 minutes" },
       { id: "120+", name: "120+ minutes" },
-    ],
-    sort_by: [
-      { id: "popularity.desc", name: "Popularity" },
-      { id: "release_date.desc", name: "Release Date" },
-      { id: "revenue.desc", name: "Revenue" },
-      { id: "original_title.asc", name: "Title" },
     ],
     safeSearch: [
       { id: "Yes", name: "Yes" },
@@ -111,6 +129,12 @@ const FilterPage = () => {
     watchListOnly: [
       { id: "No", name: "No" },
       { id: "Yes", name: "Yes" },
+    ],
+    sort_by: [
+      { id: "popularity.desc", name: "Popularity" },
+      { id: "release_date.desc", name: "Release Date" },
+      { id: "revenue.desc", name: "Revenue" },
+      { id: "original_title.asc", name: "Title" },
     ],
   };
 
@@ -254,29 +278,91 @@ const FilterPage = () => {
   };
 
   return (
-    <div className="filter-container">
-      <h1>What vibe are you looking for?</h1>
+    <div className="filter-container" style={{'--bg-image': `url(${bgMovieNight})`}}>
+      <TypewriterText text="What vibe are you looking for?" />
       <p className="filter-subtitle">All filters are optional - customize as much as you'd like!</p>
       {error && <div className="error-message">{error}</div>}
-      <div className="filters-grid">
-        {Object.entries(filterOptions).map(([filterType, options]) => (
-          <div key={filterType} className="filter-group">
-            <label>{getFilterLabel(filterType)}</label>
-            <select
-              value={filters[filterType]}
-              onChange={(e) => handleFilterChange(filterType, e.target.value)}
-              disabled={isLoading}
-            >
-              <option value="">Select {getFilterLabel(filterType)}</option>
-              {options.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
+      
+      <div className="filters-sections">
+        <div className="filter-section">
+          <h2 className="section-heading">Primary criteria</h2>
+          <div className="filters-grid">
+            {['watch_provider', 'genre'].map((filterType) => (
+              <div 
+                key={filterType} 
+                className={`filter-group filter-group-highlight`}
+              >
+                <label>{getFilterLabel(filterType)}</label>
+                <select
+                  value={filters[filterType]}
+                  onChange={(e) => handleFilterChange(filterType, e.target.value)}
+                  disabled={isLoading}
+                >
+                  <option value="">Select {getFilterLabel(filterType)}</option>
+                  {filterOptions[filterType].map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        <div className="filter-section">
+          <h2 className="section-heading">Secondary criteria</h2>
+          <div className="filters-grid">
+            {['language', 'display_language', 'era', 'min_imdb', 'rating', 'runtime'].map((filterType) => (
+              <div 
+                key={filterType} 
+                className="filter-group"
+              >
+                <label>{getFilterLabel(filterType)}</label>
+                <select
+                  value={filters[filterType]}
+                  onChange={(e) => handleFilterChange(filterType, e.target.value)}
+                  disabled={isLoading}
+                >
+                  <option value="">Select {getFilterLabel(filterType)}</option>
+                  {filterOptions[filterType].map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="filter-section">
+          <h2 className="section-heading">Display</h2>
+          <div className="filters-grid">
+            {['safeSearch', 'watchListOnly', 'sort_by'].map((filterType) => (
+              <div 
+                key={filterType} 
+                className="filter-group"
+              >
+                <label>{getFilterLabel(filterType)}</label>
+                <select
+                  value={filters[filterType]}
+                  onChange={(e) => handleFilterChange(filterType, e.target.value)}
+                  disabled={isLoading}
+                >
+                  <option value="">Select {getFilterLabel(filterType)}</option>
+                  {filterOptions[filterType].map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+
       <button className="generate-button" onClick={handleSubmit} disabled={isLoading}>
         {isLoading ? "Loading..." : "Generate"}
       </button>
