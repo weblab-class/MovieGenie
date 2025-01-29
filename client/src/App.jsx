@@ -70,10 +70,7 @@ const App = () => {
         )}
 
         <Routes>
-          <Route
-            path="/"
-            element={<LandingPage setUser={setUser} />}
-          />
+          <Route path="/" element={<LandingPage setUser={setUser} />} />
           <Route
             path="/filter"
             element={

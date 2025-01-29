@@ -62,7 +62,7 @@ function ensureLoggedIn(req, res, next) {
     console.log("User not logged in:", {
       session: req.session,
       cookies: req.cookies,
-      headers: req.headers
+      headers: req.headers,
     });
     return res.status(401).send({ err: "not logged in" });
   }

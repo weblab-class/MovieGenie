@@ -177,6 +177,7 @@ const FilterPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(validFilters),
       });
 

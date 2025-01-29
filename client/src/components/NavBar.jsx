@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin, googleLogout } from "@react-oauth/google";
 import "../styles/NavBar.css";
 
-const GOOGLE_CLIENT_ID = "747257053444-h4u0rrr2i9fqid2ufoj1ij2mqn7l3v0g.apps.googleusercontent.com";
+// require("dotenv").config();
+
+const GOOGLE_CLIENT_ID = "920670602163-kot52u1ps9vbpdr67l7q9u5m59gjjqeu.apps.googleusercontent.com";
 
 const NavBar = ({ userId, handleLogin, handleLogout }) => {
   return (
@@ -19,10 +21,13 @@ const NavBar = ({ userId, handleLogin, handleLogout }) => {
               alt="Profile"
               className="profile-image"
             />
-            <button onClick={() => {
-              googleLogout();
-              handleLogout();
-            }} className="logout-button">
+            <button
+              onClick={() => {
+                googleLogout();
+                handleLogout();
+              }}
+              className="logout-button"
+            >
               Logout
             </button>
           </div>

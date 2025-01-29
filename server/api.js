@@ -235,7 +235,14 @@ const estimateUSRating = (releaseData) => {
 // Movie discovery endpoint
 router.post("/movies/discover", auth.ensureLoggedIn, async (req, res) => {
   try {
+    console.log("Movie discover request received:", {
+      filters: req.body,
+      user: req.user?._id,
+      session: req.session,
+    });
+
     if (!TMDB_API_KEY) {
+      console.error("TMDB_API_KEY is missing or undefined");
       throw new Error("TMDB API key is not configured");
     }
 
