@@ -62,6 +62,11 @@ mongoose
 const app = express();
 app.use(validator.checkRoutes);
 
+// Trust the proxy when in production (Render)
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 // allow us to process POST requests
 app.use(express.json());
 
@@ -71,8 +76,9 @@ app.use(
     secret: process.env.SESSION_SECRET || "session-secret",
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
     },
