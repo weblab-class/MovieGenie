@@ -68,9 +68,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
-      httpOnly: true
+      httpOnly: true,
+      domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined
     }
   })
 );
