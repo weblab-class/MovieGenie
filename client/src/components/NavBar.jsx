@@ -35,7 +35,9 @@ const NavBar = ({ userId, handleLogin, handleLogout }) => {
           <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <GoogleLogin
               onSuccess={handleLogin}
-              onError={(err) => console.log("Login Failed:", err)}
+              onError={(err) => {
+                 // Error handling without console.log
+               }}
               size="medium"
               shape="circle"
             />

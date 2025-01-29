@@ -38,15 +38,9 @@ function login(req, res) {
     .then((user) => {
       // persist user in the session
       req.session.user = user;
-      console.log("User logged in successfully:", {
-        userId: user._id,
-        sessionId: req.session.id,
-        cookie: req.session.cookie,
-      });
       res.send(user);
     })
     .catch((err) => {
-      console.log(`Failed to log in: ${err}`);
       res.status(401).send({ err });
     });
 }
@@ -59,23 +53,11 @@ function logout(req, res) {
 function populateCurrentUser(req, res, next) {
   // simply populate "req.user" for convenience
   req.user = req.session.user;
-  if (req.session.user) {
-    console.log("Session found:", {
-      userId: req.session.user._id,
-      sessionId: req.session.id,
-      path: req.path,
-    });
-  }
   next();
 }
 
 function ensureLoggedIn(req, res, next) {
   if (!req.user) {
-    console.log("User not logged in:", {
-      session: req.session,
-      cookies: req.cookies,
-      headers: req.headers,
-    });
     return res.status(401).send({ err: "not logged in" });
   }
 

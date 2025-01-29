@@ -62,13 +62,13 @@ router.get("/watchlist", auth.ensureLoggedIn, async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    const watchList = user.watchList.map(movie => ({
+    const watchList = user.watchList.map((movie) => ({
       id: movie.movieId,
       title: movie.title,
       poster_path: movie.poster_path,
       vote_average: movie.vote_average,
       release_date: movie.release_date,
-      overview: movie.overview
+      overview: movie.overview,
     }));
     res.json(watchList || []);
   } catch (error) {
@@ -84,15 +84,17 @@ router.post("/watchlist/add", auth.ensureLoggedIn, async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    
+
     // Check if required fields are present
     if (!req.body.movieId || !req.body.title) {
-      return res.status(400).json({ error: "Missing required fields: movieId and title are required" });
+      return res
+        .status(400)
+        .json({ error: "Missing required fields: movieId and title are required" });
     }
 
     // Convert movieId to Number if it's a string
     const movieId = Number(req.body.movieId);
-    
+
     // Check if movie already exists in watch list
     const movieExists = user.watchList.some((movie) => movie.movieId === movieId);
     if (movieExists) {
@@ -110,15 +112,15 @@ router.post("/watchlist/add", auth.ensureLoggedIn, async (req, res) => {
     });
 
     await user.save();
-    
+
     // Return the watch list in the format expected by the frontend
-    const watchList = user.watchList.map(movie => ({
+    const watchList = user.watchList.map((movie) => ({
       id: movie.movieId,
       title: movie.title,
       poster_path: movie.poster_path,
       vote_average: movie.vote_average,
       release_date: movie.release_date,
-      overview: movie.overview
+      overview: movie.overview,
     }));
     res.json(watchList);
   } catch (error) {
@@ -136,19 +138,19 @@ router.delete("/watchlist/remove/:movieId", auth.ensureLoggedIn, async (req, res
     }
 
     const movieId = parseInt(req.params.movieId);
-    
+
     // Remove movie from watch list
     user.watchList = user.watchList.filter((movie) => movie.movieId !== movieId);
     await user.save();
-    
+
     // Return the updated watch list in the format expected by the frontend
-    const watchList = user.watchList.map(movie => ({
+    const watchList = user.watchList.map((movie) => ({
       id: movie.movieId,
       title: movie.title,
       poster_path: movie.poster_path,
       vote_average: movie.vote_average,
       release_date: movie.release_date,
-      overview: movie.overview
+      overview: movie.overview,
     }));
     res.json(watchList);
   } catch (error) {
@@ -236,16 +238,10 @@ const estimateUSRating = (releaseData) => {
 // Movie discovery endpoint
 router.post("/movies/discover", auth.ensureLoggedIn, async (req, res) => {
   try {
-    console.log("Movie discover request received:", {
-      filters: req.body,
-      user: req.user?._id,
-      session: req.session,
-      hasApiKey: !!TMDB_API_KEY,
-    });
-
     if (!TMDB_API_KEY) {
-      console.error("TMDB_API_KEY is missing or undefined");
-      return res.status(500).json({ error: "Movie API configuration error. Please contact support." });
+      return res
+        .status(500)
+        .json({ error: "Movie API configuration error. Please contact support." });
     }
 
     const filters = req.body;
@@ -297,7 +293,7 @@ router.post("/movies/discover", auth.ensureLoggedIn, async (req, res) => {
     // Fetch up to 4 more pages (total of 100 movies)
     const totalPages = Math.min(5, firstPageData.total_pages);
     const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-    
+
     const additionalResults = await Promise.all(
       remainingPages.map(async (page) => {
         const pageUrl = `${url}&page=${page}`;
@@ -310,7 +306,7 @@ router.post("/movies/discover", auth.ensureLoggedIn, async (req, res) => {
 
     // Combine all results and remove duplicates
     allResults = [...allResults, ...additionalResults.flat()];
-    const uniqueMovies = Array.from(new Map(allResults.map(movie => [movie.id, movie])).values());
+    const uniqueMovies = Array.from(new Map(allResults.map((movie) => [movie.id, movie])).values());
     let filteredResults = uniqueMovies;
 
     // Apply rating filter if specified

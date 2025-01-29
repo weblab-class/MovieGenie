@@ -16,9 +16,6 @@
 // validator runs some basic checks to make sure you've set everything up correctly
 // this is a tool provided by staff, so you don't need to worry about it
 
-// Log the TMDB API Key (temporary for debugging)
-console.log("TMDB API Key in Render:", process.env.TMDB_API_KEY);
-
 const validator = require("./validator");
 validator.checkSetup();
 
@@ -55,8 +52,8 @@ mongoose
     useUnifiedTopology: true,
     dbName: databaseName,
   })
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.log(`Error connecting to MongoDB: ${err}`));
+  .then(() => {})
+  .catch((err) => {});
 
 // create a new express server
 const app = express();
@@ -155,9 +152,6 @@ app.get("*", (req, res, next) => {
 app.use((err, req, res, next) => {
   const status = err.status || 500;
   if (status === 500) {
-    // 500 means Internal Server Error
-    console.log("The server errored when processing a request!");
-    console.log(err);
   }
 
   res.status(status);

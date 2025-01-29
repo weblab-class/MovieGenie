@@ -47,12 +47,12 @@ const LandingPage = ({ setUser }) => {
       setUser(data);
       setIsLoggedIn(true);
     } else {
-      console.log("Login failed:", data.err);
+      // Removed console.log message
     }
   };
 
   const handleLoginError = () => {
-    console.log("Login Failed");
+    // Removed console.log message
   };
 
   return (
@@ -64,10 +64,7 @@ const LandingPage = ({ setUser }) => {
           </div>
           <p>Your personal movie recommendation assistant</p>
           <div className="login-container">
-            <GoogleLogin
-              onSuccess={handleLoginSuccess}
-              onError={handleLoginError}
-            />
+            <GoogleLogin onSuccess={handleLoginSuccess} onError={handleLoginError} />
           </div>
         </div>
       </div>

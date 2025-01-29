@@ -14,24 +14,21 @@ const WatchListPage = () => {
 
   const fetchWatchList = async () => {
     try {
-      console.log("Fetching watch list...");
       const response = await fetch("/api/watchlist", {
         credentials: "include",
         headers: {
           Accept: "application/json",
         },
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Error response:", errorText);
         throw new Error(`Failed to fetch watch list: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      console.log("Watch list data received:", data);
       if (Array.isArray(data)) {
-        console.log(`Found ${data.length} movies in watch list`);
         setWatchList(data);
       } else {
         console.error("Unexpected data format:", data);
@@ -77,7 +74,6 @@ const WatchListPage = () => {
       }
 
       const updatedList = await response.json();
-      console.log("Updated watch list received:", updatedList);
       if (Array.isArray(updatedList)) {
         setWatchList(updatedList);
       } else {
