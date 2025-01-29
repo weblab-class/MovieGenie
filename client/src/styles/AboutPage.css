@@ -1,11 +1,10 @@
 .about-container {
   min-height: 100vh;
-  padding: 0;
+  padding: 0 0 5rem 0;
   margin: 0;
   background-color: #0a192f;
   color: #ffffff;
-  display: flex;
-  flex-direction: column;
+  position: relative;
 }
 
 .about-container h1 {
@@ -14,4 +13,98 @@
   margin: 0;
   padding-top: 2rem;
   font-size: 2.5rem;
+}
+
+/* Background image and overlay */
+.about-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('../assets/bg-movie-night.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  z-index: 0;
+  filter: blur(4px);
+}
+
+/* Ensure content stays above the background */
+.about-container > * {
+  position: relative;
+  z-index: 1;
+  margin: 0 1rem;
+}
+
+.about-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: rgba(10, 25, 47, 0.8);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.about-content h1 {
+  color: #ffd700;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 2.5rem;
+  min-height: 3rem; /* Prevent layout shift during typing */
+}
+
+/* Typing cursor style */
+.about-content h1::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  from, to { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.about-content h2 {
+  color: #ffffff;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+
+.about-content section {
+  margin-bottom: 2rem;
+}
+
+.about-content p {
+  color: #ffffff;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.team ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.team li {
+  color: #ffffff;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  padding-left: 1rem;
+  border-left: 3px solid #007bff;
+}
+
+.closing {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.closing p {
+  font-weight: 500;
 }
