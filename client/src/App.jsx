@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import logo from "./assets/logo.png";
 
 import LandingPage from "./pages/LandingPage";
 import FilterPage from "./pages/FilterPage";
@@ -12,6 +13,7 @@ const GOOGLE_CLIENT_ID = "920670602163-kot52u1ps9vbpdr67l7q9u5m59gjjqeu.apps.goo
 
 const App = () => {
   const [user, setUser] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     // Try to get user data when the app loads
@@ -34,7 +36,31 @@ const App = () => {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="app-container">
+      <div className={`app-container ${user ? 'has-navbar' : ''}`}>
+        {user && (
+          <nav className="navbar">
+            <div className="nav-content">
+              <Link to="/filter" className="nav-logo">
+                <img src={logo} alt="Logo" className="logo-image" />
+              </Link>
+              <div className="nav-links">
+                {location.pathname !== '/filter' && (
+                  <Link to="/filter" className="nav-button">Filter</Link>
+                )}
+                <button 
+                  className="nav-button"
+                  onClick={() => {
+                    fetch("/api/logout", { method: "POST" }).then(() => {
+                      setUser(null);
+                    });
+                  }}
+                >
+                  Log Out
+                </button>
+              </div>
+            </div>
+          </nav>
+        )}
         <Routes>
           <Route path="/" element={<LandingPage setUser={setUser} />} />
           <Route

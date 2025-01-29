@@ -8,7 +8,19 @@ const LandingPage = ({ setUser }) => {
   const navigate = useNavigate();
   const [displayText, setDisplayText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const fullText = "MovieGenie";
+
+  useEffect(() => {
+    // Check login status when component mounts
+    fetch("/api/whoami")
+      .then((res) => res.json())
+      .then((user) => {
+        if (user._id) {
+          setIsLoggedIn(true);
+        }
+      });
+  }, []);
 
   useEffect(() => {
     if (displayText.length < fullText.length) {
@@ -39,21 +51,25 @@ const LandingPage = ({ setUser }) => {
     }
   };
 
+  const handleLoginError = () => {
+    console.log("Login Failed");
+  };
+
   return (
     <div className="landing-container">
-      <img src={logo} alt="MovieGenie Logo" className="logo" />
-      <div className="landing-content">
-        <div className="title-container">
-          <h1 className={isTyping ? "typing" : ""}>{displayText}</h1>
-        </div>
-        <p>Your personal movie recommendation assistant</p>
-        <div className="login-container">
-          <GoogleLogin
-            onSuccess={handleLoginSuccess}
-            onError={() => {
-              console.log("Login Failed");
-            }}
-          />
+      <div className="content">
+        {!isLoggedIn && <img src={logo} alt="MovieGenie Logo" className="logo" />}
+        <div className="landing-content">
+          <div className="title-container">
+            <h1 className={isTyping ? "typing" : ""}>{displayText}</h1>
+          </div>
+          <p>Your personal movie recommendation assistant</p>
+          <div className="login-container">
+            <GoogleLogin
+              onSuccess={handleLoginSuccess}
+              onError={handleLoginError}
+            />
+          </div>
         </div>
       </div>
     </div>
