@@ -117,6 +117,17 @@ body {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
+.filter-button {
+  color: #ffd700 !important;
+  border: 2px solid #ffd700 !important;
+  border-radius: 8px !important;
+}
+
+.filter-button:hover {
+  background-color: #ffd700 !important;
+  color: #1a2942 !important;
+}
+
 .app-container {
   min-height: 100vh;
 }

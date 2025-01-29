@@ -260,6 +260,7 @@ router.post("/movies/discover", auth.ensureLoggedIn, async (req, res) => {
     }
     if (filters.watch_provider) {
       url += `&with_watch_providers=${filters.watch_provider}`;
+      url += "&watch_region=US";
     }
     if (filters.primary_release_date_gte) {
       url += `&primary_release_date.gte=${filters.primary_release_date_gte}`;
@@ -340,8 +341,19 @@ router.post("/movies/discover", auth.ensureLoggedIn, async (req, res) => {
     if (filters.safeSearch === "Yes") {
       filteredResults = filteredResults.filter((movie) => {
         const overview = (movie.overview || "").toLowerCase();
-        const badWords = ["sex", "porn", "erotic", "nudity", "hardcore", "violate", "rape"];
-        return !badWords.some((word) => overview.includes(word));
+        const title = (movie.title || "").toLowerCase();
+        const badWords = [
+          "sex",
+          "porn",
+          "erotic",
+          "nudity",
+          "hardcore",
+          "violate",
+          "rape",
+          "submissive",
+          "busty",
+        ];
+        return !badWords.some((word) => overview.includes(word) || title.includes(word));
       });
     }
 

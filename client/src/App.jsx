@@ -45,7 +45,7 @@ const App = () => {
                 <img src={logo} alt="Logo" className="logo-image" />
               </Link>
               <div className="nav-links">
-                <Link to="/filter" className="nav-button">
+                <Link to="/filter" className="nav-button filter-button">
                   Filter
                 </Link>
                 <Link to="/about" className="nav-button">

@@ -67,7 +67,6 @@ const FilterPage = () => {
       { id: "8", name: "Netflix" },
       { id: "9", name: "Prime Video" },
       { id: "337", name: "Disney+" },
-      { id: "384", name: "HBO Max" },
       { id: "15", name: "Hulu" },
       { id: "2", name: "Apple TV+" },
       { id: "283", name: "Crunchyroll" },

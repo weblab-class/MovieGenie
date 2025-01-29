@@ -36,8 +36,8 @@ const NavBar = ({ userId, handleLogin, handleLogout }) => {
             <GoogleLogin
               onSuccess={handleLogin}
               onError={(err) => {
-                 // Error handling without console.log
-               }}
+                // Error handling without console.log
+              }}
               size="medium"
               shape="circle"
             />
