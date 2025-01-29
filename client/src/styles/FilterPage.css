@@ -9,13 +9,13 @@
 
 /* Background image and overlay */
 .filter-container::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url('../assets/bg-movie-night.png');
+  background-image: url("../assets/bg-movie-night.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -145,8 +145,13 @@ select:disabled {
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 .cursor {

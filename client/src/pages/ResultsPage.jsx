@@ -43,10 +43,12 @@ const ResultsPage = () => {
 
   const handlePrevPage = () => {
     setCurrentPage((prev) => Math.max(1, prev - 1));
+    window.scrollTo(0, 0);
   };
 
   const handleNextPage = () => {
     setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+    window.scrollTo(0, 0);
   };
 
   const toggleWatchList = async (movie) => {

@@ -4,41 +4,44 @@ import "../styles/ResultsPage.css"; // We'll reuse the ResultsPage styles
 const WatchListPage = () => {
   const [watchList, setWatchList] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState({}); // Track loading state per movie
   const moviesPerPage = 20;
 
   useEffect(() => {
     // Fetch the user's watch list when component mounts
-    console.log("Fetching watch list...");
-    fetch("/api/watchlist", {
-      credentials: "include",
-      headers: {
-        "Accept": "application/json"
-      }
-    })
-      .then(async (res) => {
-        console.log("Response status:", res.status);
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("Error response:", errorText);
-          throw new Error(`Failed to fetch watch list: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log("Watch list data received:", data);
-        if (Array.isArray(data)) {
-          console.log(`Found ${data.length} movies in watch list`);
-          setWatchList(data);
-        } else {
-          console.error("Unexpected data format:", data);
-          setWatchList([]);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching watch list:", error);
-        setWatchList([]);
-      });
+    fetchWatchList();
   }, []);
+
+  const fetchWatchList = async () => {
+    try {
+      console.log("Fetching watch list...");
+      const response = await fetch("/api/watchlist", {
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
+        throw new Error(`Failed to fetch watch list: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Watch list data received:", data);
+      if (Array.isArray(data)) {
+        console.log(`Found ${data.length} movies in watch list`);
+        setWatchList(data);
+      } else {
+        console.error("Unexpected data format:", data);
+        setWatchList([]);
+      }
+    } catch (error) {
+      console.error("Error fetching watch list:", error);
+      setWatchList([]);
+    }
+  };
 
   // Calculate pagination values
   const totalPages = Math.ceil(watchList.length / moviesPerPage);
@@ -46,54 +49,56 @@ const WatchListPage = () => {
   const endIndex = startIndex + moviesPerPage;
   const currentMovies = watchList.slice(startIndex, endIndex);
 
-  console.log("Current watch list state:", {
-    total: watchList.length,
-    currentPage,
-    startIndex,
-    endIndex,
-    visibleMovies: currentMovies.length
-  });
-
   const handlePrevPage = () => {
     setCurrentPage((prev) => Math.max(1, prev - 1));
+    window.scrollTo(0, 0);
   };
 
   const handleNextPage = () => {
     setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+    window.scrollTo(0, 0);
   };
 
-  const handleRemoveFromWatchList = (movieId) => {
-    console.log("Removing movie from watch list:", movieId);
-    fetch(`/api/watchlist/remove/${movieId}`, {
-      method: "DELETE",
-      credentials: "include",
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("Error response:", errorText);
-          throw new Error(`Failed to remove from watch list: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((updatedList) => {
-        console.log("Updated watch list received:", updatedList);
-        if (Array.isArray(updatedList)) {
-          setWatchList(updatedList);
-        } else {
-          console.error("Unexpected data format from remove:", updatedList);
-        }
-      })
-      .catch((error) => {
-        console.error("Error removing from watch list:", error);
+  const toggleWatchList = async (movie) => {
+    try {
+      // Set loading state for this specific movie
+      setIsLoading((prev) => ({ ...prev, [movie.id]: true }));
+
+      // Remove from watch list
+      const response = await fetch(`/api/watchlist/remove/${movie.id}`, {
+        method: "DELETE",
+        credentials: "include",
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
+        throw new Error(`Failed to remove from watch list: ${response.status}`);
+      }
+
+      const updatedList = await response.json();
+      console.log("Updated watch list received:", updatedList);
+      if (Array.isArray(updatedList)) {
+        setWatchList(updatedList);
+      } else {
+        console.error("Unexpected data format from remove:", updatedList);
+      }
+    } catch (error) {
+      console.error("Error removing from watch list:", error);
+    } finally {
+      // Clear loading state
+      setIsLoading((prev) => ({ ...prev, [movie.id]: false }));
+    }
   };
 
   return (
     <div className="results-container">
       <div className="results-header">
         <h1>Your Watch List</h1>
-        <p>You have {watchList.length} movies in your watch list</p>
+        <p className="watch-list-count">
+          You have {watchList.length} {watchList.length === 1 ? "movie" : "movies"} in your watch
+          list!
+        </p>
       </div>
 
       {watchList.length > 0 && (
@@ -130,9 +135,15 @@ const WatchListPage = () => {
                 }
                 alt={movie.title}
               />
+              <div className="movie-overlay">
+                <div className="movie-description">
+                  <p>{movie.overview}</p>
+                </div>
+              </div>
               <button
-                className="remove-from-watchlist"
-                onClick={() => handleRemoveFromWatchList(movie.id)}
+                className={`watch-list-button in-list ${isLoading[movie.id] ? "loading" : ""}`}
+                onClick={() => toggleWatchList(movie)}
+                disabled={isLoading[movie.id]}
                 title="Remove from Watch List"
               >
                 ★
@@ -141,10 +152,7 @@ const WatchListPage = () => {
             <div className="movie-details">
               <h3>{movie.title}</h3>
               <p className="movie-rating">★ {movie.vote_average.toFixed(1)}/10</p>
-              <p className="movie-date">
-                {new Date(movie.release_date).getFullYear()}
-              </p>
-              <p className="movie-overview">{movie.overview}</p>
+              <p className="movie-date">{new Date(movie.release_date).getFullYear()}</p>
             </div>
           </div>
         ))}

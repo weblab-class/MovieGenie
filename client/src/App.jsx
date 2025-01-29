@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import logo from "./assets/logo.png";
+import ScrollToTop from "./components/ScrollToTop";
 
 import LandingPage from "./pages/LandingPage";
 import FilterPage from "./pages/FilterPage";
@@ -36,18 +37,17 @@ const App = () => {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className={`app-container ${user ? "has-navbar" : ""}`}>
+        <ScrollToTop />
         {user && (
           <nav className="navbar">
             <div className="nav-content">
-              <Link to="/filter">
+              <Link to="/">
                 <img src={logo} alt="Logo" className="logo-image" />
               </Link>
               <div className="nav-links">
-                {location.pathname !== "/filter" && (
-                  <Link to="/filter" className="nav-button">
-                    Filter
-                  </Link>
-                )}
+                <Link to="/filter" className="nav-button">
+                  Filter
+                </Link>
                 <Link to="/about" className="nav-button">
                   About
                 </Link>
@@ -71,8 +71,8 @@ const App = () => {
 
         <Routes>
           <Route
-            path="/*"
-            element={user ? <Navigate to="/filter" /> : <LandingPage setUser={setUser} />}
+            path="/"
+            element={<LandingPage setUser={setUser} />}
           />
           <Route
             path="/filter"

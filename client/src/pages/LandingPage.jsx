@@ -45,7 +45,7 @@ const LandingPage = ({ setUser }) => {
     const data = await response.json();
     if (data._id) {
       setUser(data);
-      navigate("/filter");
+      setIsLoggedIn(true);
     } else {
       console.log("Login failed:", data.err);
     }
@@ -59,7 +59,6 @@ const LandingPage = ({ setUser }) => {
     <div className="landing-container">
       <div className="content">
         <div className="landing-content">
-          {!isLoggedIn && <img src={logo} alt="MovieGenie Logo" className="logo" />}
           <div className="title-container">
             <h1 className={isTyping ? "typing" : ""}>{displayText}</h1>
           </div>

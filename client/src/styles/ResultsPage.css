@@ -240,6 +240,13 @@
   color: #666;
 }
 
+.watch-list-count {
+  color: #64ffda !important;
+  font-size: 1.2rem;
+  margin: 1rem 0;
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .movies-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));

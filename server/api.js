@@ -80,15 +80,23 @@ router.post("/watchlist/add", auth.ensureLoggedIn, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     
+    // Check if required fields are present
+    if (!req.body.movieId || !req.body.title) {
+      return res.status(400).json({ error: "Missing required fields: movieId and title are required" });
+    }
+
+    // Convert movieId to Number if it's a string
+    const movieId = Number(req.body.movieId);
+    
     // Check if movie already exists in watch list
-    const movieExists = user.watchList.some((movie) => movie.movieId === req.body.movieId);
+    const movieExists = user.watchList.some((movie) => movie.movieId === movieId);
     if (movieExists) {
       return res.status(400).json({ error: "Movie already in watch list" });
     }
 
     // Add movie to watch list
     user.watchList.push({
-      movieId: req.body.movieId,
+      movieId: movieId,
       title: req.body.title,
       poster_path: req.body.poster_path,
       vote_average: req.body.vote_average,
@@ -110,7 +118,7 @@ router.post("/watchlist/add", auth.ensureLoggedIn, async (req, res) => {
     res.json(watchList);
   } catch (error) {
     console.error("Error adding to watch list:", error);
-    res.status(500).json({ error: "Failed to add to watch list" });
+    res.status(500).json({ error: error.message || "Failed to add to watch list" });
   }
 });
 
@@ -225,114 +233,106 @@ const estimateUSRating = (releaseData) => {
 };
 
 // Movie discovery endpoint
-router.get("/discover", async (req, res) => {
+router.post("/movies/discover", auth.ensureLoggedIn, async (req, res) => {
   try {
     if (!TMDB_API_KEY) {
       throw new Error("TMDB API key is not configured");
     }
 
-    console.log("Received query params:", req.query);
+    const filters = req.body;
+    const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+    let url = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&include_adult=false`;
 
-    // Get query parameters
-    const {
-      language,
-      display_language,
-      min_imdb,
-      genre,
-      primary_release_date_gte,
-      primary_release_date_lte,
-      rating,
-      safeSearch,
-      watch_provider,
-      sort_by = "popularity.desc",
-      runtime,
-    } = req.query;
-
-    // Build TMDB API URL with parameters
-    const params = new URLSearchParams({
-      api_key: TMDB_API_KEY,
-      include_adult: false,
-      include_video: false,
-      page: 1,
-      status: "released",
-      sort_by: sort_by,
-    });
-
-    // Add filters to TMDB API request
-    if (genre) params.append("with_genres", genre);
-    if (min_imdb) params.append("vote_average.gte", min_imdb);
-    if (watch_provider) {
-      params.append("with_watch_providers", watch_provider);
-      params.append("watch_region", "US"); // Set region to US for streaming services
+    // Add filters to URL
+    if (filters.language) {
+      url += `&with_original_language=${filters.language}`;
     }
-
-    // Handle runtime ranges
-    if (runtime) {
-      if (runtime === "120+") {
-        params.append("with_runtime.gte", "120");
+    if (filters.display_language) {
+      url += `&language=${filters.display_language}`;
+    }
+    if (filters.genre) {
+      url += `&with_genres=${filters.genre}`;
+    }
+    if (filters.watch_provider) {
+      url += `&with_watch_providers=${filters.watch_provider}`;
+    }
+    if (filters.primary_release_date_gte) {
+      url += `&primary_release_date.gte=${filters.primary_release_date_gte}`;
+    }
+    if (filters.primary_release_date_lte) {
+      url += `&primary_release_date.lte=${filters.primary_release_date_lte}`;
+    }
+    if (filters.min_imdb) {
+      url += `&vote_average.gte=${filters.min_imdb}`;
+    }
+    if (filters.runtime) {
+      const [minRuntime, maxRuntime] = filters.runtime.split("-").map(Number);
+      if (maxRuntime) {
+        url += `&with_runtime.gte=${minRuntime}&with_runtime.lte=${maxRuntime}`;
       } else {
-        const [min, max] = runtime.split("-");
-        params.append("with_runtime.gte", min);
-        params.append("with_runtime.lte", max);
+        url += `&with_runtime.gte=${minRuntime}`;
       }
-    } else {
-      // Default minimum runtime to filter out very short films
-      params.append("with_runtime.gte", "30");
     }
-
-    // Handle primary language (for filtering movies)
-    if (language) {
-      params.append("with_original_language", language);
+    if (filters.sort_by) {
+      url += `&sort_by=${filters.sort_by}`;
     }
-
-    // Handle display language (for UI localization)
-    if (display_language) {
-      params.set("language", `${display_language}-${display_language.toUpperCase()}`);
-    } else {
-      params.set("language", "en-US"); // Default to English
-    }
-
-    if (primary_release_date_gte)
-      params.append("primary_release_date.gte", primary_release_date_gte);
-    if (primary_release_date_lte)
-      params.append("primary_release_date.lte", primary_release_date_lte);
 
     // Fetch first page to get total pages
-    const url = `${TMDB_BASE_URL}/discover/movie?${params}`;
-    console.log("\nTMDB API Request URL:", url.replace(TMDB_API_KEY, "API_KEY_HIDDEN"));
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.status_message || "Failed to fetch movies");
+    const firstPageResponse = await fetch(url);
+    if (!firstPageResponse.ok) {
+      throw new Error("Failed to fetch from TMDB API");
     }
+    const firstPageData = await firstPageResponse.json();
+    let allResults = [...firstPageData.results];
 
-    // Fetch up to 5 pages (100 movies)
-    const totalPages = Math.min(5, data.total_pages);
-    let allResults = [...data.results];
-
-    // Fetch remaining pages
+    // Fetch up to 4 more pages (total of 100 movies)
+    const totalPages = Math.min(5, firstPageData.total_pages);
     const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+    
     const additionalResults = await Promise.all(
       remainingPages.map(async (page) => {
-        params.set("page", page);
-        const pageUrl = `${TMDB_BASE_URL}/discover/movie?${params}`;
-        console.log(`\nFetching page ${page}:`, pageUrl.replace(TMDB_API_KEY, "API_KEY_HIDDEN"));
+        const pageUrl = `${url}&page=${page}`;
         const pageResponse = await fetch(pageUrl);
+        if (!pageResponse.ok) return [];
         const pageData = await pageResponse.json();
         return pageData.results;
       })
     );
 
-    // Combine all results
+    // Combine all results and remove duplicates
     allResults = [...allResults, ...additionalResults.flat()];
-
-    // Remove duplicate movies by ID
-    const uniqueMovies = Array.from(new Map(allResults.map((movie) => [movie.id, movie])).values());
+    const uniqueMovies = Array.from(new Map(allResults.map(movie => [movie.id, movie])).values());
     let filteredResults = uniqueMovies;
 
+    // Apply rating filter if specified
+    const rating = filters.rating;
+    if (rating) {
+      // Get release dates for each movie to check certification
+      const moviesWithCertification = await Promise.all(
+        filteredResults.map(async (movie) => {
+          const releaseDatesUrl = `${TMDB_BASE_URL}/movie/${movie.id}/release_dates?api_key=${TMDB_API_KEY}`;
+          const releaseDatesResponse = await fetch(releaseDatesUrl);
+          if (!releaseDatesResponse.ok) {
+            return null;
+          }
+          const releaseData = await releaseDatesResponse.json();
+          const estimatedRating = estimateUSRating(releaseData);
+          return { ...movie, estimatedRating };
+        })
+      );
+
+      // Filter movies based on rating
+      filteredResults = moviesWithCertification.filter((movie) => {
+        if (!movie || !movie.estimatedRating) return false;
+        const ratingOrder = ["G", "PG", "PG-13", "R", "NC-17"];
+        const movieRatingIndex = ratingOrder.indexOf(movie.estimatedRating);
+        const maxRatingIndex = ratingOrder.indexOf(rating);
+        return movieRatingIndex !== -1 && movieRatingIndex <= maxRatingIndex;
+      });
+    }
+
     // Apply safe search filter if enabled
-    if (safeSearch === "Yes") {
+    if (filters.safeSearch === "Yes") {
       filteredResults = filteredResults.filter((movie) => {
         const overview = (movie.overview || "").toLowerCase();
         const badWords = ["sex", "porn", "erotic", "nudity", "hardcore", "violate", "rape"];
@@ -340,88 +340,7 @@ router.get("/discover", async (req, res) => {
       });
     }
 
-    if (rating) {
-      // Get release dates for each movie to check certification
-      const moviesWithCertification = await Promise.all(
-        filteredResults.map(async (movie) => {
-          const releaseDatesUrl = `${TMDB_BASE_URL}/movie/${movie.id}/release_dates?api_key=${TMDB_API_KEY}`;
-          const releaseResponse = await fetch(releaseDatesUrl);
-          const releaseData = await releaseResponse.json();
-
-          // Find US certification
-          const usRelease = releaseData.results.find((r) => r.iso_3166_1 === "US");
-          let certification = usRelease?.release_dates[0]?.certification;
-
-          // If movie is NR or undefined, try to estimate from international ratings
-          if (!certification || certification === "NR") {
-            // First try international ratings
-            const estimatedRating = estimateUSRating(releaseData);
-
-            if (estimatedRating) {
-              certification = estimatedRating;
-            } else {
-              // If no international ratings, use genre and other metadata
-              if (movie.adult) {
-                certification = "NC-17";
-              } else {
-                const matureGenres = ["27", "53", "10752"]; // Horror, Thriller, War
-                const hasMaturedGenres = movie.genre_ids.some((id) =>
-                  matureGenres.includes(id.toString())
-                );
-
-                if (hasMaturedGenres) {
-                  certification = "R";
-                } else if (movie.vote_average >= 7.5 && movie.popularity > 50) {
-                  certification = "PG-13";
-                } else {
-                  certification = "PG"; // Default to PG if we can't determine
-                }
-              }
-            }
-          }
-
-          // Add debug information
-          console.log(
-            `Movie: ${movie.title}, Final Rating: ${certification}, Original US Rating: ${
-              usRelease?.release_dates[0]?.certification || "None"
-            }`
-          );
-
-          return {
-            ...movie,
-            certification,
-            estimated:
-              !usRelease?.release_dates[0]?.certification ||
-              usRelease.release_dates[0].certification === "NR",
-          };
-        })
-      );
-
-      // Filter out NR movies
-      filteredResults = moviesWithCertification.filter((movie) => movie.certification !== "NR");
-
-      // If rating filter is applied, filter by rating hierarchy
-      if (rating) {
-        const ratingOrder = ["PG", "PG-13", "R", "NC-17"];
-        const maxRatingIndex = ratingOrder.indexOf(rating);
-
-        if (maxRatingIndex !== -1) {
-          filteredResults = filteredResults.filter((movie) => {
-            const movieRatingIndex = ratingOrder.indexOf(movie.certification);
-            return movieRatingIndex !== -1 && movieRatingIndex <= maxRatingIndex;
-          });
-        }
-      }
-    }
-
-    console.log("Found", filteredResults.length, "movies");
-
-    // Return all results
-    res.json({
-      results: filteredResults,
-      total_results: filteredResults.length,
-      total_pages: Math.ceil(filteredResults.length / 20),
-    });
+    res.json(filteredResults);
   } catch (error) {
     console.error("TMDB API Error:", error);
     res.status(500).json({ error: error.message });
@@ -431,7 +350,7 @@ router.get("/discover", async (req, res) => {
 // anything else falls to this "not found" case
 router.all("*", (req, res) => {
   console.log(`API route not found: ${req.method} ${req.url}`);
-  res.status(404).send({ msg: "API route not found" });
+  res.status(404).json({ msg: "API route not found" });
 });
 
 module.exports = router;
